@@ -9,7 +9,7 @@ from .models import BankStatement
 from .serializers import BankStatementSerializer, StatementUploadSerializer
 from .parsers import CSVParser, PDFParser, BankDetector
 from apps.transactions.models import Transaction
-
+from apps.transactions.categorizer import TransactionCategorizer
 
 class StatementUploadView(generics.CreateAPIView):
     """POST /api/statements/upload/ — Upload and parse a bank statement."""
@@ -54,7 +54,11 @@ class StatementUploadView(generics.CreateAPIView):
                 raw_transactions = parser.extract(tmp_path)
                 os.unlink(tmp_path)  # Delete temp file
 
-            # Step 4: Save transactions to database
+            # Step 4: Categorize transactions
+            categorizer = TransactionCategorizer()
+            categorizer.categorize_bulk(raw_transactions)
+
+            # Step 5: Save transactions to database
             transactions_to_create = []
             for tx in raw_transactions:
                 transactions_to_create.append(Transaction(
@@ -65,8 +69,8 @@ class StatementUploadView(generics.CreateAPIView):
                     amount=tx['amount'],
                     type=tx['type'],
                     balance_after=tx.get('balance_after'),
-                    category='other',
-                    category_confidence=0.0,
+                    category=tx['category'],
+                    category_confidence=tx['category_confidence'],
                 ))
 
             Transaction.objects.bulk_create(transactions_to_create)
