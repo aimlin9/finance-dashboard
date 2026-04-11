@@ -21,3 +21,7 @@ staticfiles/
 # Node (frontend — Week 5)
 node_modules/
 dist/
+
+# Real bank statements — never push to GitHub
+backend/tests/sample_statements/gcb_unlocked.pdf
+backend/tests/sample_statements/BankStatemnt_*.pdf
