@@ -34,7 +34,7 @@ Most Ghanaians have no clear picture of where their money goes. Bank apps show r
 🚧 **Currently in development** — building in public over 6 weeks.
 
 - [x] Week 1 — Django setup, custom User model, JWT auth, admin panel
-- [ ] Week 2 — File parsing engine (PDF + CSV parsers, bank detection)
+- [x] Week 2 — File parsing engine (PDF + CSV parsers, bank detection)
 - [ ] Week 3 — NLP categorization + Celery async pipeline
 - [ ] Week 4 — Analytics, monthly summaries, Gemini AI insights
 - [ ] Week 5 — React frontend dashboard
