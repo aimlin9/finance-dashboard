@@ -1,0 +1,14 @@
+{
+  "labels":[
+    "food",
+    "transport",
+    "utilities",
+    "entertainment",
+    "health",
+    "shopping",
+    "income",
+    "savings",
+    "other"
+  ],
+  "threshold":0.5
+}

@@ -1,3 +1,7 @@
+import os
+import spacy
+
+
 class TransactionCategorizer:
     """
     Categorizes transactions using two layers:
@@ -10,6 +14,7 @@ class TransactionCategorizer:
             'shoprite', 'melcom food', 'pizza', 'kfc', 'restaurant',
             'chop bar', 'food', 'groceries', 'bakery', 'cafe',
             'chicken', 'burger', 'kitchen', 'eatery', 'canteen',
+            'papaye',
         ],
         'transport': [
             'uber', 'bolt', 'trotro', 'fuel', 'petrol', 'goil',
@@ -44,6 +49,21 @@ class TransactionCategorizer:
         ],
     }
 
+    # Minimum confidence to trust the NLP model
+    NLP_THRESHOLD = 0.6
+
+    def __init__(self):
+        self.nlp_model = None
+        model_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            'models', 'categorizer'
+        )
+        if os.path.exists(model_path):
+            try:
+                self.nlp_model = spacy.load(model_path)
+            except Exception:
+                pass  # Fall back to keywords only
+
     def categorize(self, description):
         """
         Categorize a single transaction description.
@@ -56,8 +76,16 @@ class TransactionCategorizer:
             if any(kw in desc_lower for kw in keywords):
                 return category, 1.0
 
-        # Layer 2: spaCy NLP (TODO — Week 3 continued)
-        # For now, return 'other' with low confidence
+        # Layer 2: spaCy NLP classifier
+        if self.nlp_model:
+            doc = self.nlp_model(description)
+            best_cat = max(doc.cats, key=doc.cats.get)
+            confidence = doc.cats[best_cat]
+
+            if confidence >= self.NLP_THRESHOLD:
+                return best_cat, round(confidence, 2)
+
+        # Nothing matched with enough confidence
         return 'other', 0.5
 
     def categorize_bulk(self, transactions):
