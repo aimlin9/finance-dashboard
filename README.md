@@ -39,7 +39,7 @@ Most Ghanaians have no clear picture of where their money goes. Bank apps show r
 - [x] Budget tracking with progress and alerts
 - [x] CSV export for transactions
 - [x] Password reset flow
-- [ ] Week 5 — React frontend dashboard
+- [x] Week 5 — React frontend dashboard
 - [ ] Week 6 — Polish, deploy, demo video
 
 ## API Endpoints
