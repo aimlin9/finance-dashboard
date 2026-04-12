@@ -1,11 +1,13 @@
 from datetime import date
 from django.db import models
+from django.db.models import Sum
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import MonthlySummary, Category
+from .models import MonthlySummary, Category, BudgetAlert
 from .summarizer import compute_monthly_summary
 from .ai_insights import generate_insight
+from apps.transactions.models import Transaction
 
 
 class DashboardView(APIView):
@@ -19,7 +21,6 @@ class DashboardView(APIView):
         year, m = month_str.split('-')
         month_date = date(int(year), int(m), 1)
 
-        # Compute summary if it doesn't exist yet
         summary = MonthlySummary.objects.filter(
             user=request.user, month=month_date
         ).first()
@@ -70,7 +71,6 @@ class InsightsView(APIView):
         if not summary:
             return Response({'detail': 'No data for this month.'}, status=404)
 
-        # Generate insight if not already done
         if not summary.ai_insight:
             from django.utils import timezone
             summary.ai_insight = generate_insight(summary)
@@ -121,4 +121,99 @@ class CompareView(APIView):
                 'net_savings': str(sum2.net_savings),
                 'category_breakdown': sum2.category_breakdown,
             },
+        })
+
+
+class BudgetView(APIView):
+    """GET /api/analytics/budget/?month=2026-03 — Get budgets with current spending."""
+
+    def get(self, request):
+        month_str = request.query_params.get('month')
+        if not month_str:
+            return Response({'detail': 'month query param required.'}, status=400)
+
+        year, m = month_str.split('-')
+
+        # Get user's custom categories
+        user_cats = Category.objects.filter(user=request.user)
+        user_slugs = user_cats.values_list('slug', flat=True)
+
+        # Get system defaults, excluding ones the user has customized
+        system_cats = Category.objects.filter(
+            is_system=True
+        ).exclude(slug__in=user_slugs)
+
+        # Combine both
+        categories = list(user_cats) + list(system_cats)
+
+        spending = {}
+        txns = Transaction.objects.filter(
+            user=request.user,
+            type='debit',
+            date__year=int(year),
+            date__month=int(m),
+        ).values('category').annotate(total=Sum('amount'))
+
+        for row in txns:
+            spending[row['category']] = float(row['total'])
+
+        data = []
+        for cat in categories:
+            spent = spending.get(cat.slug, 0)
+            limit = float(cat.budget_limit) if cat.budget_limit else None
+            progress = (spent / limit * 100) if limit else None
+
+            data.append({
+                'name': cat.name,
+                'slug': cat.slug,
+                'color': cat.color,
+                'icon': cat.icon,
+                'budget_limit': limit,
+                'amount_spent': spent,
+                'progress': round(progress, 1) if progress else None,
+                'status': 'exceeded' if progress and progress >= 100
+                    else 'warning' if progress and progress >= 80
+                    else 'ok',
+            })
+
+        return Response(data)
+
+
+class BudgetSetView(APIView):
+    """POST /api/analytics/budget/set/ — Set budget limit for a category."""
+
+    def post(self, request):
+        slug = request.data.get('category')
+        limit = request.data.get('budget_limit')
+
+        if not slug or limit is None:
+            return Response(
+                {'detail': 'category and budget_limit are required.'},
+                status=400,
+            )
+
+        cat = Category.objects.filter(slug=slug, user=request.user).first()
+
+        if not cat:
+            system_cat = Category.objects.filter(slug=slug, is_system=True).first()
+            if not system_cat:
+                return Response({'detail': 'Category not found.'}, status=404)
+
+            cat = Category.objects.create(
+                user=request.user,
+                name=system_cat.name,
+                slug=system_cat.slug,
+                color=system_cat.color,
+                icon=system_cat.icon,
+                budget_limit=limit,
+                is_system=False,
+            )
+        else:
+            cat.budget_limit = limit
+            cat.save()
+
+        return Response({
+            'category': cat.slug,
+            'budget_limit': str(cat.budget_limit),
+            'status': 'updated',
         })

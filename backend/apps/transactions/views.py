@@ -1,7 +1,9 @@
+import csv
+from django.http import HttpResponse
 from rest_framework import generics
 from .models import Transaction
 from .serializers import TransactionSerializer
-
+from rest_framework.views import APIView
 
 class TransactionListView(generics.ListAPIView):
     """GET /api/transactions/ — Filterable list of user transactions."""
@@ -41,3 +43,26 @@ class TransactionUpdateView(generics.UpdateAPIView):
 
     def perform_update(self, serializer):
         serializer.save(is_manually_edited=True, category_confidence=1.0)
+
+
+class TransactionExportView(APIView):
+    """GET /api/transactions/export/?month=2026-03 — Download transactions as CSV."""
+
+    def get(self, request):
+        qs = Transaction.objects.filter(user=request.user)
+
+        month = request.query_params.get('month')
+        if month:
+            year, m = month.split('-')
+            qs = qs.filter(date__year=int(year), date__month=int(m))
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="transactions_{month or "all"}.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Date', 'Description', 'Amount', 'Type', 'Category', 'Balance After'])
+
+        for tx in qs:
+            writer.writerow([tx.date, tx.description, tx.amount, tx.type, tx.category, tx.balance_after])
+
+        return response
