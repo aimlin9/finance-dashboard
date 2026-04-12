@@ -217,3 +217,20 @@ class BudgetSetView(APIView):
             'budget_limit': str(cat.budget_limit),
             'status': 'updated',
         })
+
+class BudgetRemoveView(APIView):
+    """POST /api/analytics/budget/remove/ — Remove budget limit for a category."""
+
+    def post(self, request):
+        slug = request.data.get('category')
+        if not slug:
+            return Response({'detail': 'category is required.'}, status=400)
+
+        cat = Category.objects.filter(slug=slug, user=request.user).first()
+        if not cat:
+            return Response({'detail': 'No custom budget found.'}, status=404)
+
+        cat.budget_limit = None
+        cat.save()
+
+        return Response({'category': slug, 'status': 'removed'})

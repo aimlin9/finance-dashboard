@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Upload, List, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, Upload, List, Wallet, LogOut, User } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
 
@@ -38,6 +38,10 @@ export default function Layout({ children }) {
           <NavLink to="/transactions" className={linkClass}>
             <List size={20} />
             Transactions
+          </NavLink>
+          <NavLink to="/budget" className={linkClass}>
+            <Wallet size={20} />
+            Budget
           </NavLink>
         </nav>
 
