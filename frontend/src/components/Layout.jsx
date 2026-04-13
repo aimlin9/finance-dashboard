@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Upload,
@@ -14,12 +14,47 @@ import {
   HelpCircle,
   ExternalLink,
   ChevronUp,
+  X,
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import useThemeStore from '../store/themeStore';
 import toast from 'react-hot-toast';
 
-export default function Layout({ children }) {
+function HamburgerIcon({ isOpen, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className="p-2 rounded-lg text-gray-400 hover:bg-gray-800 cursor-pointer relative w-10 h-10 flex items-center justify-center"
+    >
+      <div className="w-5 h-4 relative">
+        <span
+          className="absolute left-0 w-full h-0.5 bg-current transition-all duration-300 ease-in-out"
+          style={{
+            top: isOpen ? '7px' : '0px',
+            transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+          }}
+        />
+        <span
+          className="absolute left-0 w-full h-0.5 bg-current transition-all duration-300 ease-in-out"
+          style={{
+            top: '7px',
+            opacity: isOpen ? 0 : 1,
+            transform: isOpen ? 'translateX(-8px)' : 'translateX(0)',
+          }}
+        />
+        <span
+          className="absolute left-0 w-full h-0.5 bg-current transition-all duration-300 ease-in-out"
+          style={{
+            top: isOpen ? '7px' : '14px',
+            transform: isOpen ? 'rotate(-45deg)' : 'rotate(0deg)',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function Sidebar({ onNavigate }) {
   var { user, logout } = useAuthStore();
   var { theme, toggleTheme } = useThemeStore();
   var navigate = useNavigate();
@@ -42,12 +77,19 @@ export default function Layout({ children }) {
     logout();
     toast.success('Logged out');
     navigate('/login');
+    if (onNavigate) onNavigate();
   };
 
   var handleToggleTheme = function() {
     toggleTheme();
     setMenuOpen(false);
     toast.success(theme === 'dark' ? 'Light mode enabled' : 'Dark mode enabled');
+  };
+
+  var goTo = function(path) {
+    navigate(path);
+    setMenuOpen(false);
+    if (onNavigate) onNavigate();
   };
 
   var linkClass = function({ isActive }) {
@@ -62,113 +104,168 @@ export default function Layout({ children }) {
   var userEmail = user ? user.email : '';
 
   return (
-    <div className="min-h-screen bg-gray-950 flex">
-      <aside className="w-64 bg-gray-900 border-r border-gray-800 p-6 flex flex-col">
-        <h1 className="text-xl font-bold text-white mb-1">🇬🇭 FinTrack</h1>
-        <p className="text-xs text-gray-500 mb-8">Personal Finance Dashboard</p>
+    <>
+      <nav className="flex-1 space-y-2">
+        <NavLink to="/dashboard" className={linkClass} onClick={onNavigate}>
+          <LayoutDashboard size={20} />
+          Dashboard
+        </NavLink>
+        <NavLink to="/upload" className={linkClass} onClick={onNavigate}>
+          <Upload size={20} />
+          Upload
+        </NavLink>
+        <NavLink to="/transactions" className={linkClass} onClick={onNavigate}>
+          <List size={20} />
+          Transactions
+        </NavLink>
+        <NavLink to="/budget" className={linkClass} onClick={onNavigate}>
+          <Wallet size={20} />
+          Budget
+        </NavLink>
+        <NavLink to="/history" className={linkClass} onClick={onNavigate}>
+          <Clock size={20} />
+          History
+        </NavLink>
+        <NavLink to="/compare" className={linkClass} onClick={onNavigate}>
+          <GitCompare size={20} />
+          Compare
+        </NavLink>
+      </nav>
 
-        <nav className="flex-1 space-y-2">
-          <NavLink to="/dashboard" className={linkClass}>
-            <LayoutDashboard size={20} />
-            Dashboard
-          </NavLink>
-          <NavLink to="/upload" className={linkClass}>
-            <Upload size={20} />
-            Upload
-          </NavLink>
-          <NavLink to="/transactions" className={linkClass}>
-            <List size={20} />
-            Transactions
-          </NavLink>
-          <NavLink to="/budget" className={linkClass}>
-            <Wallet size={20} />
-            Budget
-          </NavLink>
-          <NavLink to="/history" className={linkClass}>
-            <Clock size={20} />
-            History
-          </NavLink>
-          <NavLink to="/compare" className={linkClass}>
-            <GitCompare size={20} />
-            Compare
-          </NavLink>
-        </nav>
-
-        <div className="relative" ref={menuRef}>
-          {menuOpen && (
-            <div className="absolute bottom-16 left-0 right-0 bg-gray-800 border border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
-              <button
-                onClick={function() { navigate('/settings'); setMenuOpen(false); }}
-                className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:bg-gray-700 transition text-sm"
-              >
-                <Settings size={16} />
-                Settings
-              </button>
-
-              <button
-                onClick={handleToggleTheme}
-                className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:bg-gray-700 transition text-sm"
-              >
-                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              </button>
-
-              <div className="border-t border-gray-700" />
-
-              <a
-                href="https://github.com/aimlin9/finance-dashboard"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:bg-gray-700 transition text-sm"
-              >
-                <ExternalLink size={16} />
-                GitHub Repo
-              </a>
-
-              <a
-                href="https://dev.to/aimlin9"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:bg-gray-700 transition text-sm"
-              >
-                <HelpCircle size={16} />
-                Help and Resources
-              </a>
-
-              <div className="border-t border-gray-700" />
-
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-gray-700 transition text-sm"
-              >
-                <LogOut size={16} />
-                Sign Out
-              </button>
+      <div className="relative" ref={menuRef}>
+        {menuOpen && (
+          <div className="absolute bottom-16 left-0 right-0 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-[100]">
+            <div
+              onClick={function() { goTo('/settings'); }}
+              className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:bg-gray-700 transition text-sm cursor-pointer"
+            >
+              <Settings size={16} />
+              <span>Settings</span>
             </div>
-          )}
 
-          <button
-            onClick={function() { setMenuOpen(!menuOpen); }}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-gray-800 transition border-t border-gray-800 mt-2 pt-4"
-          >
-            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
-              {userInitial}
+            <div
+              onClick={handleToggleTheme}
+              className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:bg-gray-700 transition text-sm cursor-pointer"
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+              <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
             </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm text-white">{userName}</p>
-              <p className="text-xs text-gray-500">{userEmail}</p>
+
+            <div className="border-t border-gray-700" />
+
+            <a
+              href="https://github.com/aimlin9/finance-dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:bg-gray-700 transition text-sm cursor-pointer"
+            >
+              <ExternalLink size={16} />
+              <span>GitHub Repo</span>
+            </a>
+
+            <a
+              href="https://dev.to/aimlin9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:bg-gray-700 transition text-sm cursor-pointer"
+            >
+              <HelpCircle size={16} />
+              <span>Help and Resources</span>
+            </a>
+
+            <div className="border-t border-gray-700" />
+
+            <div
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-gray-700 transition text-sm cursor-pointer"
+            >
+              <LogOut size={16} />
+              <span>Sign Out</span>
             </div>
-            <ChevronUp
-              size={16}
-              className={'text-gray-500 transition-transform ' + (menuOpen ? 'rotate-180' : '')}
-            />
-          </button>
+          </div>
+        )}
+
+        <div
+          onClick={function() { setMenuOpen(!menuOpen); }}
+          className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-gray-800 transition border-t border-gray-800 mt-2 pt-4 cursor-pointer"
+        >
+          <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
+            {userInitial}
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm text-white">{userName}</p>
+            <p className="text-xs text-gray-500">{userEmail}</p>
+          </div>
+          <ChevronUp
+            size={16}
+            className={'text-gray-500 transition-transform ' + (menuOpen ? 'rotate-180' : '')}
+          />
         </div>
+      </div>
+    </>
+  );
+}
+
+export default function Layout({ children }) {
+  var [mobileOpen, setMobileOpen] = useState(false);
+  var location = useLocation();
+
+  useEffect(function() {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  var closeMobile = function() {
+    setMobileOpen(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-950 flex">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 bg-gray-900 border-r border-gray-800 p-6 flex-col fixed h-full overflow-visible">
+        <h1 className="text-xl font-bold text-white mb-1">🇬🇭   FinTrack </h1>
+        <p className="text-xs text-gray-500 mb-8">Personal Finance Dashboard</p>
+        <Sidebar />
       </aside>
 
-      <main className="flex-1 p-8 overflow-auto">
-        {children}
-      </main>
+      {/* Mobile Overlay */}
+      <div
+        className={'lg:hidden fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 ' + (mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none')}
+        onClick={closeMobile}
+      />
+
+      {/* Mobile Sidebar */}
+      <aside className={'lg:hidden fixed top-0 left-0 h-full w-72 bg-gray-900 border-r border-gray-800 p-6 flex flex-col z-50 transition-transform duration-300 ease-in-out ' + (mobileOpen ? 'translate-x-0' : '-translate-x-full')}>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-xl font-bold text-white mb-1">🇬🇭 FinTrack</h1>
+            <p className="text-xs text-gray-500">Personal Finance Dashboard</p>
+          </div>
+          <div
+            onClick={closeMobile}
+            className="p-2 rounded-lg text-gray-400 hover:bg-gray-800 cursor-pointer"
+          >
+            <X size={20} />
+          </div>
+        </div>
+        <Sidebar onNavigate={closeMobile} />
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-64">
+        {/* Mobile Header */}
+        <div className="lg:hidden flex items-center justify-between p-4 bg-gray-900 border-b border-gray-800 sticky top-0 z-30">
+          <HamburgerIcon
+            isOpen={mobileOpen}
+            onClick={function() { setMobileOpen(!mobileOpen); }}
+          />
+          <h1 className="text-lg font-bold text-white">🇬🇭 FinTrack </h1>
+          <div className="w-10" />
+        </div>
+
+        <main className="p-4 sm:p-6 lg:p-8 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

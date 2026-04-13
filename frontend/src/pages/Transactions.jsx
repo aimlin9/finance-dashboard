@@ -24,6 +24,19 @@ export default function Transactions() {
   const [typeFilter, setTypeFilter] = useState('');
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [editingId, setEditingId] = useState(null);
+  const [editCategory, setEditCategory] = useState('');
+
+  const handleCategoryUpdate = async function(txId, newCategory) {
+    try {
+      await api.patch('/transactions/' + txId + '/edit/', { category: newCategory });
+      toast.success('Category updated!');
+      setEditingId(null);
+      fetchTransactions();
+    } catch (err) {
+      toast.error('Failed to update category');
+    }
+  };
   const [nextPage, setNextPage] = useState(null);
   const [prevPage, setPrevPage] = useState(null);
 
@@ -156,9 +169,33 @@ export default function Transactions() {
                       : tx.description}
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other}`}>
-                      {tx.category}
-                    </span>
+                    {editingId === tx.id ? (
+                      <select
+                        value={editCategory}
+                        onChange={function(e) { handleCategoryUpdate(tx.id, e.target.value); }}
+                        onBlur={function() { setEditingId(null); }}
+                        autoFocus
+                        className="px-2 py-1 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="food">food</option>
+                        <option value="transport">transport</option>
+                        <option value="utilities">utilities</option>
+                        <option value="entertainment">entertainment</option>
+                        <option value="health">health</option>
+                        <option value="shopping">shopping</option>
+                        <option value="income">income</option>
+                        <option value="savings">savings</option>
+                        <option value="other">other</option>
+                      </select>
+                    ) : (
+                      <button
+                        onClick={function() { setEditingId(tx.id); setEditCategory(tx.category); }}
+                        className={'px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition ' + (CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other)}
+                        title="Click to change category"
+                      >
+                        {tx.category}
+                      </button>
+                    )}
                   </td>
                   <td className={`px-6 py-4 text-right text-sm font-medium ${
                     tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400'
