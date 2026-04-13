@@ -1,1 +1,135 @@
 @import "tailwindcss";
+
+/* Light theme overrides */
+.light {
+  --light-bg: #f8fafc;
+  --light-surface: #ffffff;
+  --light-border: #e2e8f0;
+  --light-text: #0f172a;
+  --light-text-secondary: #475569;
+  --light-text-muted: #94a3b8;
+}
+
+/* Override Tailwind's gray scale in light mode */
+.light .bg-gray-950 {
+  background-color: var(--light-bg) !important;
+}
+
+.light .bg-gray-900 {
+  background-color: var(--light-surface) !important;
+}
+
+.light .bg-gray-800 {
+  background-color: #f1f5f9 !important;
+}
+
+.light .bg-gray-800\/30 {
+  background-color: rgba(241, 245, 249, 0.3) !important;
+}
+
+.light .border-gray-800 {
+  border-color: var(--light-border) !important;
+}
+
+.light .border-gray-700 {
+  border-color: #cbd5e1 !important;
+}
+
+.light .border-gray-800\/50 {
+  border-color: rgba(226, 232, 240, 0.5) !important;
+}
+
+.light .text-white {
+  color: var(--light-text) !important;
+}
+
+.light .text-gray-400 {
+  color: var(--light-text-secondary) !important;
+}
+
+.light .text-gray-500 {
+  color: var(--light-text-muted) !important;
+}
+
+.light .text-gray-600 {
+  color: #64748b !important;
+}
+
+.light .hover\:bg-gray-800:hover {
+  background-color: #e2e8f0 !important;
+}
+
+.light .hover\:bg-gray-700:hover {
+  background-color: #cbd5e1 !important;
+}
+
+.light .hover\:text-white:hover {
+  color: var(--light-text) !important;
+}
+
+.light .bg-gray-900\/50 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Light mode specific shadows */
+.light .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Fix select dropdowns in light mode */
+.light select {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.light select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* Fix input fields in light mode */
+.light input:not([type="checkbox"]):not([type="radio"]) {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Keep colored elements visible */
+.light .bg-indigo-600 {
+  background-color: #4f46e5 !important;
+}
+
+.light .bg-indigo-600\/20 {
+  background-color: rgba(79, 70, 229, 0.1) !important;
+}
+
+/* Tooltip fix */
+.light .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Transition for smooth theme switching */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  
+}
+/* Fix popup menu in light mode */
+.light .text-gray-300 {
+  color: #334155 !important;
+}
+
+.light .hover\:bg-gray-700:hover {
+  background-color: #e2e8f0 !important;
+}
+
+.light .border-gray-700 {
+  border-color: #e2e8f0 !important;
+}
+
+

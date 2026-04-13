@@ -8,6 +8,9 @@ import Upload from './pages/Upload';
 import Transactions from './pages/Transactions';
 import Layout from './components/Layout';
 import Budget from './pages/Budget';
+import Settings from './pages/Settings';
+import History from './pages/History';
+import Compare from './pages/Compare';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -44,6 +47,9 @@ export default function App() {
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
         <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
         <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+        <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </BrowserRouter>
