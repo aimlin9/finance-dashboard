@@ -40,7 +40,7 @@ Most Ghanaians have no clear picture of where their money goes. Bank apps show r
 - [x] CSV export for transactions
 - [x] Password reset flow
 - [x] Week 5 — React frontend dashboard
-- [ ] Week 6 — Polish, deploy, demo video
+- [x] Week 6 — Polish, deploy, demo video
 
 ## API Endpoints
 
@@ -127,6 +127,11 @@ User uploads PDF/CSV
 ## Why I Built This
 
 Most personal finance tools are built for Western banks. In Ghana, there's no app that reads your GCB or MTN MoMo statement and tells you where your money is going. I built FinTrack Ghana to fill that gap — a tool that understands local bank formats and gives actionable insights in plain English.
+
+## Live Demo
+
+- **Frontend:** [finance-dashboard-phi-mauve.vercel.app](https://finance-dashboard-phi-mauve.vercel.app)
+- **Backend API:** [finance-dashboard-production-8a66.up.railway.app](https://finance-dashboard-production-8a66.up.railway.app/api/)
 
 ## What I'd Add Next
 
