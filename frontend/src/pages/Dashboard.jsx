@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import api from '../api/client';
 import toast from 'react-hot-toast';
+import RecurringTransactions from '../components/RecurringTransactions';
 
 var CATEGORY_COLORS = {
   food: '#10B981',
@@ -335,6 +336,8 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      {/* Recurring Transactions */}
+      <RecurringTransactions />
 
       {/* AI Insight */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">

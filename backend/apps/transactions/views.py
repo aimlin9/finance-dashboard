@@ -4,6 +4,8 @@ from rest_framework import generics
 from .models import Transaction
 from .serializers import TransactionSerializer
 from rest_framework.views import APIView
+from django.db.models import Count
+from rest_framework.response import Response
 
 class TransactionListView(generics.ListAPIView):
     """GET /api/transactions/ — Filterable list of user transactions."""
@@ -66,3 +68,40 @@ class TransactionExportView(APIView):
             writer.writerow([tx.date, tx.description, tx.amount, tx.type, tx.category, tx.balance_after])
 
         return response
+
+class RecurringTransactionsView(APIView):
+    """GET /api/transactions/recurring/ — Detect recurring transactions."""
+
+    def get(self, request):
+        # Find descriptions that appear 2+ times
+        recurring = (
+            Transaction.objects.filter(user=request.user)
+            .values('description')
+            .annotate(count=Count('id'))
+            .filter(count__gte=2)
+            .order_by('-count')
+        )
+
+        results = []
+        for item in recurring:
+            txns = Transaction.objects.filter(
+                user=request.user,
+                description=item['description'],
+            ).order_by('date')
+
+            first = txns.first()
+            last = txns.last()
+
+            results.append({
+                'description': item['description'],
+                'count': item['count'],
+                'category': first.category if first else 'other',
+                'type': first.type if first else 'debit',
+                'average_amount': str(
+                    round(sum(float(tx.amount) for tx in txns) / item['count'], 2)
+                ),
+                'first_seen': str(first.date) if first else None,
+                'last_seen': str(last.date) if last else None,
+            })
+
+        return Response(results)
