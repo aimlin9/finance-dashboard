@@ -101,9 +101,9 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
-CORS_ALLOWED_ORIGINS = os.environ.get(
-    'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173,http://127.0.0.1:5173'
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://finance-dashboard-production-8a66.up.railway.app,https://finance-dashboard-phi-mauve.vercel.app,http://localhost:8000'
 ).split(',')
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
