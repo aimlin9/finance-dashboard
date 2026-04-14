@@ -1,5 +1,5 @@
 import json
-from decouple import config
+import os
 from google import genai
 
 
@@ -8,7 +8,7 @@ def generate_insight(summary):
     Send monthly summary data to Gemini and get back
     3 plain-English financial insights.
     """
-    api_key = config('GEMINI_API_KEY', default='')
+    api_key = os.environ.get('GEMINI_API_KEY', '')
     if not api_key:
         return 'AI insights unavailable — no API key configured.'
 
