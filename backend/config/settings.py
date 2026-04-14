@@ -101,14 +101,12 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
-CSRF_TRUSTED_ORIGINS = os.environ.get(
-    'CSRF_TRUSTED_ORIGINS',
-    'https://finance-dashboard-production-8a66.up.railway.app,https://finance-dashboard-phi-mauve.vercel.app,http://localhost:8000'
-).split(',')
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     'CSRF_TRUSTED_ORIGINS',
-    'https://finance-dashboard-production-8a66.up.railway.app,http://localhost:8000'
+    'https://finance-dashboard-production-8a66.up.railway.app,https://finance-dashboard-phi-mauve.vercel.app,http://localhost:8000'
 ).split(',')
 
 STATIC_URL = '/static/'
