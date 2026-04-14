@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Upload, Brain, BarChart3, Shield, Zap, Globe, ArrowRight, ChevronDown } from 'lucide-react';
+import Logo from '../components/Logo';
 
 var sampleData = [
   { name: 'Food', value: 30, color: '#10B981' },
@@ -112,7 +113,10 @@ export default function Landing() {
 
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 sm:px-12 py-6" style={{ animation: 'fadeDown 0.6s ease' }}>
-        <h1 className="text-xl font-bold text-white">🇬🇭 FinTrack</h1>
+        <div className="flex items-center gap-2">
+          <Logo size={28} />
+          <h1 className="text-xl font-bold text-white">FinTrack</h1>
+        </div>
         <div className="flex gap-3">
           <div
             onClick={function() { navigate('/login'); }}

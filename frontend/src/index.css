@@ -151,4 +151,52 @@
   }
 }
 
+/* Print styles for reports */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:bg-white {
+    background-color: white !important;
+  }
+  .print\:border-gray-300 {
+    border-color: #d1d5db !important;
+  }
+  .print\:text-black {
+    color: black !important;
+  }
+  .print\:text-gray-600 {
+    color: #4b5563 !important;
+  }
+  .print\:text-gray-700 {
+    color: #374151 !important;
+  }
+  .print\:text-emerald-600 {
+    color: #059669 !important;
+  }
+  .print\:text-red-600 {
+    color: #dc2626 !important;
+  }
+  .print\:text-indigo-600 {
+    color: #4f46e5 !important;
+  }
+  .print\:border-gray-200 {
+    border-color: #e5e7eb !important;
+  }
+  .print\:border-gray-400 {
+    border-color: #9ca3af !important;
+  }
+  aside, nav, .print\:hidden {
+    display: none !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+}
+
 

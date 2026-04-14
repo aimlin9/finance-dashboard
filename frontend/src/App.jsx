@@ -16,6 +16,8 @@ import Landing from './pages/Landing';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import About from './pages/About';
+import SavingsGoals from './pages/SavingsGoals';
+
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -59,8 +61,10 @@ export default function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} /> 
         <Route path="/about" element={<About />} />
+        <Route path="/savings" element={<ProtectedRoute><SavingsGoals /></ProtectedRoute>} />
         <Route path="/" element={<Landing />} />
         <Route path="*" element={<Navigate to="/" />} />
+       
       </Routes>
     </BrowserRouter>
   );

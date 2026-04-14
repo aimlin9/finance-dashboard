@@ -8,6 +8,7 @@ from .models import MonthlySummary, Category, BudgetAlert
 from .summarizer import compute_monthly_summary
 from .ai_insights import generate_insight
 from apps.transactions.models import Transaction
+from .models import MonthlySummary, Category, BudgetAlert, SavingsGoal
 
 
 class DashboardView(APIView):
@@ -234,3 +235,78 @@ class BudgetRemoveView(APIView):
         cat.save()
 
         return Response({'category': slug, 'status': 'removed'})
+    
+class SavingsGoalListView(APIView):
+    """GET/POST /api/analytics/savings-goals/"""
+
+    def get(self, request):
+        goals = SavingsGoal.objects.filter(user=request.user)
+        data = []
+        for goal in goals:
+            progress = (float(goal.current_amount) / float(goal.target_amount) * 100) if goal.target_amount else 0
+            data.append({
+                'id': str(goal.id),
+                'name': goal.name,
+                'target_amount': str(goal.target_amount),
+                'current_amount': str(goal.current_amount),
+                'deadline': str(goal.deadline) if goal.deadline else None,
+                'is_completed': goal.is_completed,
+                'progress': round(progress, 1),
+                'created_at': str(goal.created_at),
+            })
+        return Response(data)
+
+    def post(self, request):
+        name = request.data.get('name')
+        target = request.data.get('target_amount')
+        deadline = request.data.get('deadline')
+
+        if not name or not target:
+            return Response({'detail': 'name and target_amount are required.'}, status=400)
+
+        goal = SavingsGoal.objects.create(
+            user=request.user,
+            name=name,
+            target_amount=target,
+            deadline=deadline if deadline else None,
+        )
+        return Response({
+            'id': str(goal.id),
+            'name': goal.name,
+            'target_amount': str(goal.target_amount),
+            'status': 'created',
+        }, status=201)
+
+
+class SavingsGoalDetailView(APIView):
+    """PATCH/DELETE /api/analytics/savings-goals/{id}/"""
+
+    def patch(self, request, pk):
+        try:
+            goal = SavingsGoal.objects.get(id=pk, user=request.user)
+        except SavingsGoal.DoesNotExist:
+            return Response({'detail': 'Goal not found.'}, status=404)
+
+        if 'current_amount' in request.data:
+            goal.current_amount = request.data['current_amount']
+        if 'name' in request.data:
+            goal.name = request.data['name']
+        if 'target_amount' in request.data:
+            goal.target_amount = request.data['target_amount']
+        if 'deadline' in request.data:
+            goal.deadline = request.data['deadline'] if request.data['deadline'] else None
+
+        if float(goal.current_amount) >= float(goal.target_amount):
+            goal.is_completed = True
+
+        goal.save()
+        return Response({'status': 'updated'})
+
+    def delete(self, request, pk):
+        try:
+            goal = SavingsGoal.objects.get(id=pk, user=request.user)
+        except SavingsGoal.DoesNotExist:
+            return Response({'detail': 'Goal not found.'}, status=404)
+
+        goal.delete()
+        return Response({'status': 'deleted'})

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
 import api from '../api/client';
+import Logo from '../components/Logo';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -61,9 +62,10 @@ export default function Auth() {
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            🇬🇭 FinTrack Ghana
-          </h1>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Logo size={40} />
+            <h1 className="text-3xl font-bold text-white">FinTrack Ghana</h1>
+          </div>
           <p className="text-gray-400">
             {isLogin ? 'Sign in to your account' : 'Create your account'}
           </p>

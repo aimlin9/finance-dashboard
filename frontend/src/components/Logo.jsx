@@ -1,0 +1,16 @@
+export default function Logo({ size }) {
+  var s = size || 32;
+  return (
+    <svg width={s} height={s} viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="140" height="140" rx="28" fill="#6366F1"/>
+      <rect x="28" y="85" width="18" height="30" rx="4" fill="white" opacity="0.6"/>
+      <rect x="54" y="55" width="18" height="60" rx="4" fill="white" opacity="0.8"/>
+      <rect x="80" y="35" width="18" height="80" rx="4" fill="white"/>
+      <polyline points="30,80 60,52 86,30" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="30" cy="80" r="4" fill="white"/>
+      <circle cx="60" cy="52" r="4" fill="white"/>
+      <circle cx="86" cy="30" r="4" fill="white"/>
+      <circle cx="108" cy="25" r="5" fill="#10B981"/>
+    </svg>
+  );
+}

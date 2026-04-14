@@ -7,6 +7,7 @@ import {
   Wallet,
   Clock,
   GitCompare,
+  Target,
   LogOut,
   Settings,
   Sun,
@@ -18,6 +19,9 @@ import {
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import useThemeStore from '../store/themeStore';
+import Logo from './Logo';
+import GlobalSearch from './GlobalSearch';
+import Notifications from './Notifications';
 import toast from 'react-hot-toast';
 
 function HamburgerIcon({ isOpen, onClick }) {
@@ -130,6 +134,11 @@ function Sidebar({ onNavigate }) {
           <GitCompare size={20} />
           Compare
         </NavLink>
+        <NavLink to="/savings" className={linkClass} onClick={onNavigate}>
+          <Target size={20} />
+          Savings Goals
+        </NavLink>
+       
       </nav>
 
       <div className="relative" ref={menuRef}>
@@ -222,7 +231,10 @@ export default function Layout({ children }) {
     <div className="min-h-screen bg-gray-950 flex">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 bg-gray-900 border-r border-gray-800 p-6 flex-col fixed h-full overflow-visible">
-        <h1 className="text-xl font-bold text-white mb-1">🇬🇭   FinTrack </h1>
+        <div className="flex items-center gap-3 mb-1">
+          <Logo size={28} />
+          <h1 className="text-xl font-bold text-white">FinTrack</h1>
+        </div>
         <p className="text-xs text-gray-500 mb-8">Personal Finance Dashboard</p>
         <Sidebar />
       </aside>
@@ -236,9 +248,12 @@ export default function Layout({ children }) {
       {/* Mobile Sidebar */}
       <aside className={'lg:hidden fixed top-0 left-0 h-full w-72 bg-gray-900 border-r border-gray-800 p-6 flex flex-col z-50 transition-transform duration-300 ease-in-out ' + (mobileOpen ? 'translate-x-0' : '-translate-x-full')}>
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-xl font-bold text-white mb-1">🇬🇭 FinTrack</h1>
-            <p className="text-xs text-gray-500">Personal Finance Dashboard</p>
+          <div className="flex items-center gap-3">
+            <Logo size={28} />
+            <div>
+              <h1 className="text-xl font-bold text-white">FinTrack</h1>
+              <p className="text-xs text-gray-500">Personal Finance Dashboard</p>
+            </div>
           </div>
           <div
             onClick={closeMobile}
@@ -252,14 +267,25 @@ export default function Layout({ children }) {
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-64">
+        {/* Desktop Top Bar */}
+        <div className="hidden lg:flex items-center gap-4 px-8 py-4 border-b border-gray-800 sticky top-0 bg-gray-950 z-20">
+          <div className="flex-1 max-w-md">
+            <GlobalSearch />
+          </div>
+          <Notifications />
+        </div>
+
         {/* Mobile Header */}
         <div className="lg:hidden flex items-center justify-between p-4 bg-gray-900 border-b border-gray-800 sticky top-0 z-30">
           <HamburgerIcon
             isOpen={mobileOpen}
             onClick={function() { setMobileOpen(!mobileOpen); }}
           />
-          <h1 className="text-lg font-bold text-white">🇬🇭 FinTrack </h1>
-          <div className="w-10" />
+          <div className="flex items-center gap-2">
+            <Logo size={24} />
+            <h1 className="text-lg font-bold text-white">FinTrack</h1>
+          </div>
+          <Notifications />
         </div>
 
         <main className="p-4 sm:p-6 lg:p-8 overflow-auto">
