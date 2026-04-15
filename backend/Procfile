@@ -1,1 +1,1 @@
-web: python manage.py migrate && python manage.py collectstatic --noinput && python manage.py shell -c "from apps.accounts.models import User; User.objects.create_superuser('oramsey60@gmail.com', 'Admin', 'FinTrack2026!') if not User.objects.filter(email='oramsey60@gmail.com').exists() else None" && gunicorn config.wsgi --bind 0.0.0.0:$PORT
+web: python manage.py migrate && python manage.py seed_categories && python manage.py collectstatic --noinput && gunicorn config.wsgi --bind 0.0.0.0:$PORT

@@ -81,16 +81,31 @@ export default function Upload() {
 
       {file && !result && (
         <div className="mt-6 bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <FileText size={24} className="text-indigo-400" />
-              <div>
-                <p className="text-white font-medium">{file.name}</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <FileText size={24} className="text-indigo-400 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-white font-medium truncate">{file.name}</p>
                 <p className="text-gray-500 text-sm">
                   {(file.size / 1024).toFixed(1)} KB
                 </p>
               </div>
             </div>
+            <button
+              onClick={handleUpload}
+              disabled={uploading}
+              className="w-full sm:w-auto px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
+            >
+              {uploading ? (
+                <>
+                  <Loader size={16} className="animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Upload & Parse'
+              )}
+            </button>
+          </div>
             <button
               onClick={handleUpload}
               disabled={uploading}
