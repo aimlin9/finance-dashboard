@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import api from '../api/client';
 
+var baseUrl = import.meta.env.VITE_API_URL || '/api';
+
 var useAuthStore = create(function(set) {
   return {
     user: null,
@@ -16,21 +18,25 @@ var useAuthStore = create(function(set) {
         return;
       }
 
-      // Try with current access token
+      // Try access token using fetch (bypasses axios interceptor)
       if (accessToken) {
         try {
-          var res = await api.get('/auth/me/');
-          set({ user: res.data, isAuthenticated: true, isLoading: false });
-          return;
+          var res = await fetch(baseUrl + '/auth/me/', {
+            headers: { 'Authorization': 'Bearer ' + accessToken },
+          });
+          if (res.ok) {
+            var userData = await res.json();
+            set({ user: userData, isAuthenticated: true, isLoading: false });
+            return;
+          }
         } catch (err) {
-          console.log('Access token failed:', err.message);
+          // Access token failed
         }
       }
 
-      // Try refreshing the token
+      // Access token expired — try refresh
       if (refreshToken) {
         try {
-          var baseUrl = import.meta.env.VITE_API_URL || '/api';
           var refreshRes = await fetch(baseUrl + '/auth/refresh/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -38,23 +44,28 @@ var useAuthStore = create(function(set) {
           });
 
           if (refreshRes.ok) {
-            var data = await refreshRes.json();
-            localStorage.setItem('access_token', data.access);
-            if (data.refresh) {
-              localStorage.setItem('refresh_token', data.refresh);
+            var tokens = await refreshRes.json();
+            localStorage.setItem('access_token', tokens.access);
+            if (tokens.refresh) {
+              localStorage.setItem('refresh_token', tokens.refresh);
             }
 
-            var userRes = await api.get('/auth/me/');
-            set({ user: userRes.data, isAuthenticated: true, isLoading: false });
-            return;
+            // Now fetch user with new token
+            var userRes = await fetch(baseUrl + '/auth/me/', {
+              headers: { 'Authorization': 'Bearer ' + tokens.access },
+            });
+            if (userRes.ok) {
+              var user = await userRes.json();
+              set({ user: user, isAuthenticated: true, isLoading: false });
+              return;
+            }
           }
         } catch (err) {
-          console.log('Refresh failed:', err.message);
+          // Refresh failed
         }
       }
 
-      // Both failed — clear everything
-      console.log('AUTH FAILED - clearing tokens');
+      // Both failed
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       set({ user: null, isAuthenticated: false, isLoading: false });
