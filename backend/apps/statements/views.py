@@ -4,12 +4,14 @@ from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
+import pikepdf
 
 from .models import BankStatement
 from .serializers import BankStatementSerializer, StatementUploadSerializer
 from .parsers import CSVParser, PDFParser, BankDetector
 from apps.transactions.models import Transaction
 from apps.transactions.categorizer import TransactionCategorizer
+from apps.analytics.summarizer import compute_monthly_summary
 
 class StatementUploadView(generics.CreateAPIView):
     """POST /api/statements/upload/ — Upload and parse a bank statement."""
@@ -44,15 +46,27 @@ class StatementUploadView(generics.CreateAPIView):
                 parser = CSVParser(bank_name)
                 raw_transactions = parser.extract(content)
             elif ext == 'pdf':
-                # Save to temp file because pdfplumber needs a file path
                 with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
                     for chunk in uploaded_file.chunks():
                         tmp.write(chunk)
                     tmp_path = tmp.name
 
+                # Try to open — if encrypted, return helpful error
+                try:
+                    test_pdf = pikepdf.open(tmp_path)
+                    test_pdf.close()
+                except pikepdf.PasswordError:
+                    os.unlink(tmp_path)
+                    statement.status = 'failed'
+                    statement.error_message = 'This PDF is password-protected. Please unlock it first and re-upload.'
+                    statement.save()
+                    return Response({
+                        'error': 'This PDF is password-protected. Please unlock it first and re-upload.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
                 parser = PDFParser(bank_name)
                 raw_transactions = parser.extract(tmp_path)
-                os.unlink(tmp_path)  # Delete temp file
+                os.unlink(tmp_path)
 
             # Step 4: Categorize transactions
             categorizer = TransactionCategorizer()
@@ -80,6 +94,15 @@ class StatementUploadView(generics.CreateAPIView):
             statement.status = 'done'
             statement.processed_at = timezone.now()
             statement.save()
+
+            # Step 6: Compute monthly summaries
+            months_seen = set()
+            for tx in raw_transactions:
+                month_date = tx['date'].replace(day=1)
+                months_seen.add(month_date)
+
+            for month_date in months_seen:
+                compute_monthly_summary(request.user, month_date)
 
         except Exception as e:
             statement.status = 'failed'

@@ -123,7 +123,7 @@ export default function Upload() {
                   Statement Parsed Successfully
                 </h2>
               </div>
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-gray-900 rounded-lg p-4">
                   <p className="text-gray-500 text-sm">Transactions</p>
                   <p className="text-2xl font-bold text-white">{result.total_transactions}</p>
@@ -137,7 +137,7 @@ export default function Upload() {
                   <p className="text-2xl font-bold text-white uppercase">{result.file_type}</p>
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => navigate('/transactions')}
                   className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition"
