@@ -23,7 +23,7 @@ var useAuthStore = create(function(set) {
           set({ user: res.data, isAuthenticated: true, isLoading: false });
           return;
         } catch (err) {
-          // Access token failed, try refresh below
+          console.log('Access token failed:', err.message);
         }
       }
 
@@ -49,11 +49,12 @@ var useAuthStore = create(function(set) {
             return;
           }
         } catch (err) {
-          // Refresh failed
+          console.log('Refresh failed:', err.message);
         }
       }
 
       // Both failed — clear everything
+      console.log('AUTH FAILED - clearing tokens');
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       set({ user: null, isAuthenticated: false, isLoading: false });
