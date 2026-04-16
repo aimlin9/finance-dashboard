@@ -10,248 +10,126 @@
   --light-text-muted: #94a3b8;
 }
 
-/* Override Tailwind's gray scale in light mode */
-.light .bg-gray-950 {
-  background-color: var(--light-bg) !important;
-}
+.light .bg-gray-950 { background-color: var(--light-bg) !important; }
+.light .bg-gray-900 { background-color: var(--light-surface) !important; }
+.light .bg-gray-800 { background-color: #f1f5f9 !important; }
+.light .bg-gray-800\/30 { background-color: rgba(241, 245, 249, 0.3) !important; }
+.light .bg-gray-800\/50 { background-color: rgba(241, 245, 249, 0.5) !important; }
+.light .border-gray-800 { border-color: var(--light-border) !important; }
+.light .border-gray-700 { border-color: #cbd5e1 !important; }
+.light .border-gray-800\/50 { border-color: rgba(226, 232, 240, 0.5) !important; }
+.light .text-white { color: var(--light-text) !important; }
+.light .text-gray-300 { color: #334155 !important; }
+.light .text-gray-400 { color: var(--light-text-secondary) !important; }
+.light .text-gray-500 { color: var(--light-text-muted) !important; }
+.light .text-gray-600 { color: #64748b !important; }
+.light .hover\:bg-gray-800:hover { background-color: #e2e8f0 !important; }
+.light .hover\:bg-gray-700:hover { background-color: #cbd5e1 !important; }
+.light .hover\:text-white:hover { color: var(--light-text) !important; }
+.light .bg-gray-900\/50 { background-color: rgba(255, 255, 255, 0.5) !important; }
+.light .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important; }
+.light select { background-color: #f1f5f9 !important; color: #0f172a !important; }
+.light select option { background-color: #ffffff; color: #0f172a; }
+.light input:not([type="checkbox"]):not([type="radio"]) { background-color: #f1f5f9 !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
+.light input::placeholder { color: #94a3b8 !important; }
+.light .bg-indigo-600 { background-color: #4f46e5 !important; }
+.light .bg-indigo-600\/20 { background-color: rgba(79, 70, 229, 0.1) !important; }
+.light .border-gray-700 { border-color: #e2e8f0 !important; }
 
-.light .bg-gray-900 {
-  background-color: var(--light-surface) !important;
-}
-
-.light .bg-gray-800 {
-  background-color: #f1f5f9 !important;
-}
-
-.light .bg-gray-800\/30 {
-  background-color: rgba(241, 245, 249, 0.3) !important;
-}
-
-.light .border-gray-800 {
-  border-color: var(--light-border) !important;
-}
-
-.light .border-gray-700 {
-  border-color: #cbd5e1 !important;
-}
-
-.light .border-gray-800\/50 {
-  border-color: rgba(226, 232, 240, 0.5) !important;
-}
-
-.light .text-white {
-  color: var(--light-text) !important;
-}
-
-.light .text-gray-400 {
-  color: var(--light-text-secondary) !important;
-}
-
-.light .text-gray-500 {
-  color: var(--light-text-muted) !important;
-}
-
-.light .text-gray-600 {
-  color: #64748b !important;
-}
-
-.light .hover\:bg-gray-800:hover {
-  background-color: #e2e8f0 !important;
-}
-
-.light .hover\:bg-gray-700:hover {
-  background-color: #cbd5e1 !important;
-}
-
-.light .hover\:text-white:hover {
-  color: var(--light-text) !important;
-}
-
-.light .bg-gray-900\/50 {
-  background-color: rgba(255, 255, 255, 0.5) !important;
-}
-
-/* Light mode specific shadows */
-.light .shadow-xl {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Fix select dropdowns in light mode */
-.light select {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-}
-
-.light select option {
-  background-color: #ffffff;
-  color: #0f172a;
-}
-
-/* Fix input fields in light mode */
-.light input:not([type="checkbox"]):not([type="radio"]) {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
-
-.light input::placeholder {
-  color: #94a3b8 !important;
-}
-
-/* Keep colored elements visible */
-.light .bg-indigo-600 {
-  background-color: #4f46e5 !important;
-}
-
-.light .bg-indigo-600\/20 {
-  background-color: rgba(79, 70, 229, 0.1) !important;
-}
-
-/* Tooltip fix */
-.light .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
-}
-
-/* Transition for smooth theme switching */
-* {
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-  
-}
-/* Fix popup menu in light mode */
-.light .text-gray-300 {
-  color: #334155 !important;
-}
-
-.light .hover\:bg-gray-700:hover {
-  background-color: #e2e8f0 !important;
-}
-
-.light .border-gray-700 {
-  border-color: #e2e8f0 !important;
-}
-
-/* Mobile responsive fixes */
-@media (max-width: 1024px) {
-  .grid-cols-3 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-  .grid-cols-2 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-}
-
-@media (min-width: 640px) and (max-width: 1024px) {
-  .grid-cols-3 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-  .grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-/* Print styles for reports */
-@media print {
-  body {
-    background: white !important;
-    color: black !important;
-  }
-  .print\:hidden {
-    display: none !important;
-  }
-  .print\:bg-white {
-    background-color: white !important;
-  }
-  .print\:border-gray-300 {
-    border-color: #d1d5db !important;
-  }
-  .print\:text-black {
-    color: black !important;
-  }
-  .print\:text-gray-600 {
-    color: #4b5563 !important;
-  }
-  .print\:text-gray-700 {
-    color: #374151 !important;
-  }
-  .print\:text-emerald-600 {
-    color: #059669 !important;
-  }
-  .print\:text-red-600 {
-    color: #dc2626 !important;
-  }
-  .print\:text-indigo-600 {
-    color: #4f46e5 !important;
-  }
-  .print\:border-gray-200 {
-    border-color: #e5e7eb !important;
-  }
-  .print\:border-gray-400 {
-    border-color: #9ca3af !important;
-  }
-  aside, nav, .print\:hidden {
-    display: none !important;
-  }
-  main {
-    margin: 0 !important;
-    padding: 20px !important;
-  }
-}
-
-/* Fix mobile overflow */
-body {
+/* Global overflow fix */
+html, body, #root {
   overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 
-table {
-  display: block;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
+/* Make all grids responsive */
 @media (max-width: 640px) {
-  .grid-cols-4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-/* Fix mobile below 577px */
-@media (max-width: 577px) {
-  .grid-cols-2 {
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4,
+  .sm\:grid-cols-2,
+  .sm\:grid-cols-3,
+  .sm\:grid-cols-4 {
     grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
   }
 
-  .flex-wrap {
-    flex-direction: column;
+  main {
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
-  select {
-    width: 100% !important;
+  /* Reduce padding on mobile */
+  .p-6 { padding: 12px !important; }
+  .p-8 { padding: 16px !important; }
+  .px-6 { padding-left: 12px !important; padding-right: 12px !important; }
+  .px-8 { padding-left: 16px !important; padding-right: 16px !important; }
+
+  /* Make tables scrollable */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
   }
 
-  .px-6 {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-
-  .px-8 {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+  thead, tbody, tr {
+    max-width: 100%;
   }
 
   table th, table td {
     padding-left: 8px !important;
     padding-right: 8px !important;
     font-size: 12px !important;
+    white-space: nowrap;
   }
 
-  .text-2xl {
-    font-size: 1.25rem !important;
+  /* Smaller text on mobile */
+  .text-2xl { font-size: 1.25rem !important; }
+  .text-3xl { font-size: 1.5rem !important; }
+  .text-4xl { font-size: 1.75rem !important; }
+  .text-5xl { font-size: 2rem !important; }
+  .text-6xl { font-size: 2.25rem !important; }
+
+  /* Fix flex wrapping */
+  .flex.gap-3,
+  .flex.gap-4 {
+    flex-wrap: wrap;
   }
 
-  .text-3xl {
-    font-size: 1.5rem !important;
+  /* Full width selects and inputs */
+  select {
+    width: 100% !important;
+  }
+
+  /* Fix charts from overflowing */
+  .recharts-wrapper {
+    max-width: 100% !important;
+  }
+
+  /* Fix buttons row */
+  .flex.items-center.gap-2 {
+    flex-wrap: wrap;
   }
 }
 
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  body { background: white !important; color: black !important; }
+  aside, nav, .print\:hidden { display: none !important; }
+  main { margin: 0 !important; padding: 20px !important; }
+}
+
+/* Smooth theme switching */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
