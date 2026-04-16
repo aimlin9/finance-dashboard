@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Upload, Brain, BarChart3, Shield, Zap, Globe, ArrowRight, ChevronDown } from 'lucide-react';
 import Logo from '../components/Logo';
+import useAuthStore from '../store/authStore';
+import { useState, useEffect, useRef } from 'react';
 
 var sampleData = [
   { name: 'Food', value: 30, color: '#10B981' },
@@ -85,6 +87,14 @@ function CountUp({ target, duration }) {
 export default function Landing() {
   var navigate = useNavigate();
   var [activeTransaction, setActiveTransaction] = useState(0);
+
+  var { isAuthenticated } = useAuthStore();
+
+  useEffect(function() {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   useEffect(function() {
     var interval = setInterval(function() {
