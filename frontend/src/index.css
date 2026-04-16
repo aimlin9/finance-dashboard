@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html, body {
+  background-color: #030712;
+}
+
 /* Light theme overrides */
 .light {
   --light-bg: #f8fafc;
@@ -199,5 +203,14 @@ html, body, #root {
   .sticky {
     padding-left: 8px !important;
     padding-right: 8px !important;
+  }
+}
+.recharts-responsive-container {
+  min-height: 250px !important;
+}
+
+@media (max-width: 640px) {
+  .recharts-responsive-container {
+    min-height: 220px !important;
   }
 }

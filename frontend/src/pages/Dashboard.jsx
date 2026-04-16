@@ -184,38 +184,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <div
-          onClick={function() { navigate('/upload'); }}
-          className="flex items-center gap-3 px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl hover:border-indigo-500/30 transition cursor-pointer group"
-        >
-          <Upload size={18} className="text-indigo-400 group-hover:scale-110 transition-transform" />
-          <span className="text-sm text-gray-300">Upload</span>
-        </div>
-        <div
-          onClick={function() { navigate('/transactions'); }}
-          className="flex items-center gap-3 px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl hover:border-emerald-500/30 transition cursor-pointer group"
-        >
-          <List size={18} className="text-emerald-400 group-hover:scale-110 transition-transform" />
-          <span className="text-sm text-gray-300">Transactions</span>
-        </div>
-        <div
-          onClick={function() { navigate('/budget'); }}
-          className="flex items-center gap-3 px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl hover:border-amber-500/30 transition cursor-pointer group"
-        >
-          <Wallet size={18} className="text-amber-400 group-hover:scale-110 transition-transform" />
-          <span className="text-sm text-gray-300">Budgets</span>
-        </div>
-        <div
-          onClick={function() { navigate('/compare'); }}
-          className="flex items-center gap-3 px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl hover:border-purple-500/30 transition cursor-pointer group"
-        >
-          <GitCompare size={18} className="text-purple-400 group-hover:scale-110 transition-transform" />
-          <span className="text-sm text-gray-300">Compare</span>
-        </div>
-      </div>
-
+    
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
@@ -251,8 +220,9 @@ export default function Dashboard() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Spending by Category</h2>
           {pieData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
+            <div style={{ width: '100%', height: '250px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" stroke="none">
                   {pieData.map(function(entry, index) {
                     return <Cell key={index} fill={entry.color} />;
@@ -263,7 +233,8 @@ export default function Dashboard() {
                   contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }}
                 />
               </PieChart>
-            </ResponsiveContainer>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <p className="text-gray-500 text-center py-12">No spending data</p>
           )}

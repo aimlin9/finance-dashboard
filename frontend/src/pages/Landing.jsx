@@ -90,11 +90,7 @@ export default function Landing() {
 
   var { isAuthenticated } = useAuthStore();
 
-  useEffect(function() {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
+  
 
   useEffect(function() {
     var interval = setInterval(function() {
@@ -128,18 +124,29 @@ export default function Landing() {
           <h1 className="text-xl font-bold text-white">FinTrack</h1>
         </div>
         <div className="flex gap-3">
-          <div
-            onClick={function() { navigate('/login'); }}
-            className="px-5 py-2 text-gray-400 hover:text-white transition text-sm cursor-pointer"
-          >
-            Sign In
-          </div>
-          <div
-            onClick={function() { navigate('/login'); }}
-            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition text-sm cursor-pointer hover:shadow-lg hover:shadow-indigo-500/25"
-          >
-            Get Started
-          </div>
+          {isAuthenticated ? (
+            <div
+              onClick={function() { navigate('/dashboard'); }}
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition text-sm cursor-pointer hover:shadow-lg hover:shadow-indigo-500/25"
+            >
+              Go to Dashboard
+            </div>
+          ) : (
+            <>
+              <div
+                onClick={function() { navigate('/login'); }}
+                className="px-5 py-2 text-gray-400 hover:text-white transition text-sm cursor-pointer"
+              >
+                Sign In
+              </div>
+              <div
+                onClick={function() { navigate('/login?mode=register'); }}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition text-sm cursor-pointer hover:shadow-lg hover:shadow-indigo-500/25"
+              >
+                Get Started
+              </div>
+            </>
+          )}
         </div>
       </nav>
 

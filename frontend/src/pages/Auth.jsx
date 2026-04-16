@@ -6,7 +6,10 @@ import api from '../api/client';
 import Logo from '../components/Logo';
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(() => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('mode') !== 'register';
+});
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
