@@ -133,6 +133,23 @@ class StatementDetailView(generics.RetrieveDestroyAPIView):
     def get_queryset(self):
         return BankStatement.objects.filter(user=self.request.user)
 
+    def perform_destroy(self, instance):
+        from apps.analytics.summarizer import compute_monthly_summary
+        from apps.transactions.models import Transaction
+
+        # Get affected months before deletion
+        affected_months = set()
+        transactions = Transaction.objects.filter(statement=instance)
+        for tx in transactions:
+            affected_months.add(tx.date.replace(day=1))
+
+        # Delete the statement (cascades to transactions)
+        instance.delete()
+
+        # Recompute summaries for affected months
+        for month_date in affected_months:
+            compute_monthly_summary(self.request.user, month_date)
+
 
 class StatementStatusView(generics.RetrieveAPIView):
     """GET /api/statements/{id}/status/ — Polling endpoint."""
