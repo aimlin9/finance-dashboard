@@ -221,7 +221,8 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold text-white mb-4">Spending by Category</h2>
           {pieData.length > 0 ? (
             <div style={{ width: '100%', height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <div style={{ width: '100%', height: 250 }}>
+              <ResponsiveContainer>
                 <PieChart>
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" stroke="none">
                   {pieData.map(function(entry, index) {
@@ -234,6 +235,7 @@ export default function Dashboard() {
                 />
               </PieChart>
               </ResponsiveContainer>
+            </div>
             </div>
           ) : (
             <p className="text-gray-500 text-center py-12">No spending data</p>
