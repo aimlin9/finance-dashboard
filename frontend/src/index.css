@@ -214,3 +214,13 @@ html, body, #root {
     min-height: 220px !important;
   }
 }
+/* Force chart heights on all screens */
+.recharts-wrapper,
+.recharts-responsive-container {
+  min-height: 250px !important;
+  width: 100% !important;
+}
+
+.recharts-surface {
+  overflow: visible !important;
+}
