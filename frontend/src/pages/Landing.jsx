@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Upload, Brain, BarChart3, Shield, Zap, Globe, ArrowRight, ChevronDown } from 'lucide-react';
 import Logo from '../components/Logo';
 import useAuthStore from '../store/authStore';
-import { useState, useEffect, useRef } from 'react';
+
 
 var sampleData = [
   { name: 'Food', value: 30, color: '#10B981' },
