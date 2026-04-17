@@ -158,7 +158,7 @@ function Sidebar({ onNavigate }) {
               <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
             </div>
             <div className="border-t border-gray-700" />
-            
+            <a
               href="https://github.com/aimlin9/finance-dashboard"
               target="_blank"
               rel="noopener noreferrer"
@@ -167,7 +167,7 @@ function Sidebar({ onNavigate }) {
               <ExternalLink size={16} />
               <span>GitHub Repo</span>
             </a>
-            
+            <a
               href="https://dev.to/aimlin9"
               target="_blank"
               rel="noopener noreferrer"
