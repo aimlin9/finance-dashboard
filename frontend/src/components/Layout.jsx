@@ -219,9 +219,37 @@ export default function Layout({ children }) {
   var [mobileOpen, setMobileOpen] = useState(false);
   var location = useLocation();
 
+export default function Layout({ children }) {
+  var [mobileOpen, setMobileOpen] = useState(false);
+  var location = useLocation();
+  var touchStartX = useRef(0);
+  var touchEndX = useRef(0);
+
   useEffect(function() {
     setMobileOpen(false);
   }, [location.pathname]);
+
+  useEffect(function() {
+    var handleTouchStart = function(e) {
+      touchStartX.current = e.changedTouches[0].screenX;
+    };
+    var handleTouchEnd = function(e) {
+      touchEndX.current = e.changedTouches[0].screenX;
+      var diff = touchEndX.current - touchStartX.current;
+      if (diff > 80 && touchStartX.current < 50) {
+        setMobileOpen(true);
+      }
+      if (diff < -80 && mobileOpen) {
+        setMobileOpen(false);
+      }
+    };
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchend', handleTouchEnd);
+    return function() {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [mobileOpen]);
 
   var closeMobile = function() {
     setMobileOpen(false);

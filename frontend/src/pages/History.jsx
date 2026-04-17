@@ -72,7 +72,7 @@ export default function History() {
                     <FileText size={20} className="text-indigo-400" />
                   </div>
                   <div>
-                    <p className="text-white font-medium">{stmt.file_name}</p>
+                    <p className="text-white font-medium truncate max-w-[200px] sm:max-w-none">{stmt.file_name}</p>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-xs text-gray-500">
                         {format(new Date(stmt.uploaded_at), 'dd MMM yyyy, HH:mm')}
