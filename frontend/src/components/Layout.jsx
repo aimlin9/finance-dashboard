@@ -215,16 +215,6 @@ function Sidebar({ onNavigate }) {
   );
 }
 
-export default function Layout({ children }) {
-  var [mobileOpen, setMobileOpen] = useState(false);
-  var location = useLocation();
-
-export default function Layout({ children }) {
-  var [mobileOpen, setMobileOpen] = useState(false);
-  var location = useLocation();
-  var touchStartX = useRef(0);
-  var touchEndX = useRef(0);
-
   useEffect(function() {
     setMobileOpen(false);
   }, [location.pathname]);
