@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import api from '../api/client';
 import toast from 'react-hot-toast';
 
-const STATUS_STYLES = {
+var STATUS_STYLES = {
   done: { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
   failed: { icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/20' },
   pending: { icon: Clock, color: 'text-amber-400', bg: 'bg-amber-500/20' },
@@ -12,32 +12,32 @@ const STATUS_STYLES = {
 };
 
 export default function History() {
-  const [statements, setStatements] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  var [statements, setStatements] = useState([]);
+  var [loading, setLoading] = useState(true);
+  var [confirmDelete, setConfirmDelete] = useState(null);
 
-  const fetchStatements = async () => {
+  var fetchStatements = async function() {
     try {
-      const res = await api.get('/statements/');
+      var res = await api.get('/statements/');
       setStatements(res.data.results || res.data);
-    } catch {
+    } catch (err) {
       toast.error('Failed to load statements');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
+  useEffect(function() {
     fetchStatements();
   }, []);
 
-  const handleDelete = async (id) => {
+  var handleDelete = async function(id) {
     try {
       await api.delete('/statements/' + id + '/');
       toast.success('Statement deleted');
       setConfirmDelete(null);
       fetchStatements();
-    } catch {
+    } catch (err) {
       toast.error('Failed to delete statement');
     }
   };
@@ -65,17 +65,17 @@ export default function History() {
             return (
               <div
                 key={stmt.id}
-                className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex items-center justify-between"
+                className="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-5"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-indigo-600/20 flex items-center justify-center">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-indigo-600/20 flex items-center justify-center shrink-0">
                     <FileText size={20} className="text-indigo-400" />
                   </div>
-                  <div>
-                    <p className="text-white font-medium truncate max-w-[200px] sm:max-w-none">{stmt.file_name}</p>
-                    <div className="flex items-center gap-3 mt-1">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-medium text-sm truncate">{stmt.file_name}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
                       <span className="text-xs text-gray-500">
-                        {format(new Date(stmt.uploaded_at), 'dd MMM yyyy, HH:mm')}
+                        {format(new Date(stmt.uploaded_at), 'dd MMM yyyy')}
                       </span>
                       {stmt.bank_name && (
                         <span className="text-xs text-gray-500 uppercase">
@@ -85,28 +85,25 @@ export default function History() {
                       <span className="text-xs text-gray-500">
                         {stmt.file_type.toUpperCase()}
                       </span>
+                      {stmt.total_transactions > 0 && (
+                        <span className="text-xs text-gray-500">
+                          {stmt.total_transactions} txns
+                        </span>
+                      )}
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  {stmt.total_transactions > 0 && (
-                    <span className="text-sm text-gray-400">
-                      {stmt.total_transactions} transactions
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ' + statusStyle.bg + ' ' + statusStyle.color}>
+                      <StatusIcon size={12} />
+                      {stmt.status}
                     </span>
-                  )}
-
-                  <span className={'flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ' + statusStyle.bg + ' ' + statusStyle.color}>
-                    <StatusIcon size={12} />
-                    {stmt.status}
-                  </span>
-
-                  <button
-                    onClick={function() { setConfirmDelete(stmt.id); }}
-                    className="p-2 rounded-lg text-gray-600 hover:text-red-400 hover:bg-gray-800 transition"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                    <button
+                      onClick={function() { setConfirmDelete(stmt.id); }}
+                      className="p-2 rounded-lg text-gray-600 hover:text-red-400 hover:bg-gray-800 transition"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -115,11 +112,11 @@ export default function History() {
       )}
 
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-sm w-full mx-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-sm w-full">
             <h3 className="text-lg font-semibold text-white mb-2">Delete Statement?</h3>
             <p className="text-gray-400 text-sm mb-6">
-              This will permanently delete the statement and all its parsed transactions. This action cannot be undone.
+              This will permanently delete the statement and all its parsed transactions.
             </p>
             <div className="flex gap-3 justify-end">
               <button
