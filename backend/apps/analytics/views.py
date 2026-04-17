@@ -59,6 +59,7 @@ class InsightsView(APIView):
 
     def get(self, request):
         month_str = request.query_params.get('month')
+        force = request.query_params.get('force', 'false') == 'true'
         if not month_str:
             return Response({'detail': 'month query param required.'}, status=400)
 
@@ -72,7 +73,7 @@ class InsightsView(APIView):
         if not summary:
             return Response({'detail': 'No data for this month.'}, status=404)
 
-        if not summary.ai_insight:
+        if not summary.ai_insight or force or 'unavailable' in (summary.ai_insight or ''):
             from django.utils import timezone
             summary.ai_insight = generate_insight(summary)
             summary.insight_generated_at = timezone.now()
@@ -82,8 +83,6 @@ class InsightsView(APIView):
             'month': str(summary.month),
             'insight': summary.ai_insight,
         })
-
-
 class CompareView(APIView):
     """GET /api/analytics/compare/?month1=2026-02&month2=2026-03"""
 

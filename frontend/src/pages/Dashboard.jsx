@@ -108,7 +108,7 @@ export default function Dashboard() {
   var fetchInsight = async function() {
     setInsightLoading(true);
     try {
-      var res = await api.get('/analytics/insights/?month=' + selectedMonth);
+      var res = await api.get('/analytics/insights/?month=' + selectedMonth + '&force=true');
       setInsight(res.data.insight);
       toast.success('AI insight generated!');
     } catch (err) {
