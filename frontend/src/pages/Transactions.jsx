@@ -200,7 +200,7 @@ export default function Transactions() {
     setSelectedTx(null);
   };
 
-  return (
+ return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white mb-3">Transactions</h1>
@@ -233,7 +233,6 @@ export default function Transactions() {
             className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-indigo-500"
           />
         </form>
-
         <select
           value={categoryFilter}
           onChange={function(e) { setCategoryFilter(e.target.value); setPage(1); }}
@@ -250,7 +249,6 @@ export default function Transactions() {
           <option value="savings">Savings</option>
           <option value="other">Other</option>
         </select>
-
         <select
           value={typeFilter}
           onChange={function(e) { setTypeFilter(e.target.value); setPage(1); }}
@@ -270,69 +268,96 @@ export default function Transactions() {
             No transactions found. Upload a bank statement first.
           </div>
         ) : (
-          <table className="w-full table-fixed">
-            <thead>
-              <tr className="border-b border-gray-800">
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500 font-medium w-[70px] sm:w-[120px]">Date</th>
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500 font-medium">Description</th>
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500 font-medium hidden sm:table-cell w-[100px]">Category</th>
-                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500 font-medium w-[80px] sm:w-[120px]">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
+          <div>
+            <table className="w-full table-fixed hidden sm:table">
+              <thead>
+                <tr className="border-b border-gray-800">
+                  <th className="text-left px-4 py-3 text-sm text-gray-500 font-medium w-[110px]">Date</th>
+                  <th className="text-left px-4 py-3 text-sm text-gray-500 font-medium">Description</th>
+                  <th className="text-left px-4 py-3 text-sm text-gray-500 font-medium w-[110px]">Category</th>
+                  <th className="text-right px-4 py-3 text-sm text-gray-500 font-medium w-[120px]">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map(function(tx) {
+                  return (
+                    <tr
+                      key={tx.id}
+                      className="border-b border-gray-800/50 hover:bg-gray-800/30 cursor-pointer"
+                      onClick={function() { openDetail(tx); }}
+                    >
+                      <td className="px-4 py-3 text-gray-400 text-sm whitespace-nowrap">
+                        {format(new Date(tx.date), 'dd MMM yyyy')}
+                      </td>
+                      <td className="px-4 py-3 text-white text-sm truncate">
+                        {tx.description}
+                      </td>
+                      <td className="px-4 py-3" onClick={function(e) { e.stopPropagation(); }}>
+                        {editingId === tx.id ? (
+                          <select
+                            value={editCategory}
+                            onChange={function(e) { handleCategoryUpdate(tx.id, e.target.value); }}
+                            onBlur={function() { setEditingId(null); }}
+                            autoFocus
+                            className="px-2 py-1 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs focus:outline-none focus:border-indigo-500"
+                          >
+                            <option value="food">food</option>
+                            <option value="transport">transport</option>
+                            <option value="utilities">utilities</option>
+                            <option value="entertainment">entertainment</option>
+                            <option value="health">health</option>
+                            <option value="shopping">shopping</option>
+                            <option value="income">income</option>
+                            <option value="savings">savings</option>
+                            <option value="other">other</option>
+                          </select>
+                        ) : (
+                          <span
+                            onClick={function() { setEditingId(tx.id); setEditCategory(tx.category); }}
+                            className={'px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition ' + (CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other)}
+                          >
+                            {tx.category}
+                          </span>
+                        )}
+                      </td>
+                      <td className={'px-4 py-3 text-right text-sm font-medium whitespace-nowrap ' + (tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
+                        {tx.type === 'credit' ? '+' : '-'} GHS {parseFloat(tx.amount).toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            <div className="sm:hidden divide-y divide-gray-800">
               {transactions.map(function(tx) {
                 return (
-                  <tr
+                  <div
                     key={tx.id}
-                    className="border-b border-gray-800/50 hover:bg-gray-800/30 cursor-pointer"
+                    className="p-4 hover:bg-gray-800/30 cursor-pointer"
                     onClick={function() { openDetail(tx); }}
                   >
-                    <td className="px-3 sm:px-4 py-3 text-gray-400 text-xs sm:text-sm whitespace-nowrap">
-                      {format(new Date(tx.date), 'dd MMM')}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3 text-white text-xs sm:text-sm truncate">
-                      {tx.description}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3 hidden sm:table-cell" onClick={function(e) { e.stopPropagation(); }}>
-                      {editingId === tx.id ? (
-                        <select
-                          value={editCategory}
-                          onChange={function(e) { handleCategoryUpdate(tx.id, e.target.value); }}
-                          onBlur={function() { setEditingId(null); }}
-                          autoFocus
-                          className="px-2 py-1 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs focus:outline-none focus:border-indigo-500"
-                        >
-                          <option value="food">food</option>
-                          <option value="transport">transport</option>
-                          <option value="utilities">utilities</option>
-                          <option value="entertainment">entertainment</option>
-                          <option value="health">health</option>
-                          <option value="shopping">shopping</option>
-                          <option value="income">income</option>
-                          <option value="savings">savings</option>
-                          <option value="other">other</option>
-                        </select>
-                      ) : (
-                        <span
-                          onClick={function() { setEditingId(tx.id); setEditCategory(tx.category); }}
-                          className={'px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition ' + (CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other)}
-                        >
-                          {tx.category}
-                        </span>
-                      )}
-                    </td>
-                    <td className={'px-3 sm:px-4 py-3 text-right text-xs sm:text-sm font-medium whitespace-nowrap ' + (tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
-                      {tx.type === 'credit' ? '+' : '-'}{parseFloat(tx.amount).toFixed(2)}
-                    </td>
-                  </tr>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-white text-sm font-medium truncate flex-1 mr-3">{tx.description}</p>
+                      <p className={'text-sm font-semibold whitespace-nowrap ' + (tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
+                        {tx.type === 'credit' ? '+' : '-'}{parseFloat(tx.amount).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-500">{format(new Date(tx.date), 'dd MMM yyyy')}</span>
+                      <span className={'px-2 py-0.5 rounded-full text-xs font-medium ' + (CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other)}>
+                        {tx.category}
+                      </span>
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+          </div>
         )}
 
         {totalCount > 0 && (
-          <div className="flex items-center justify-between px-3 sm:px-6 py-3 border-t border-gray-800">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-800">
             <p className="text-xs sm:text-sm text-gray-500">{totalCount} total</p>
             <div className="flex gap-2">
               <div

@@ -49,39 +49,13 @@ html, body, #root {
 @media (max-width: 640px) {
   .grid-cols-2,
   .grid-cols-3,
-  .grid-cols-4,
-  .sm\:grid-cols-2,
-  .sm\:grid-cols-3,
-  .sm\:grid-cols-4 {
+  .grid-cols-4 {
     grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-
-  .p-6 { padding: 12px !important; }
-  .p-8 { padding: 16px !important; }
-  .px-6 { padding-left: 12px !important; padding-right: 12px !important; }
-  .px-8 { padding-left: 16px !important; padding-right: 16px !important; }
-
-  table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    max-width: 100%;
-  }
-
-  table th, table td {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-    font-size: 12px !important;
-    white-space: nowrap;
   }
 
   .text-2xl { font-size: 1.25rem !important; }
   .text-3xl { font-size: 1.5rem !important; }
   .text-4xl { font-size: 1.75rem !important; }
-
-  select {
-    width: 100% !important;
-  }
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
@@ -98,25 +72,4 @@ html, body, #root {
   body { background: white !important; color: black !important; }
   aside, nav, .print\:hidden { display: none !important; }
   main { margin: 0 !important; padding: 20px !important; }
-}
-
-/* Fix for very narrow screens (below 360px) */
-@media (max-width: 360px) {
-  .max-w-md, .max-w-lg, .max-w-sm {
-    max-width: 100% !important;
-  }
-
-  .p-4 { padding: 8px !important; }
-  .p-5 { padding: 10px !important; }
-  .p-6 { padding: 10px !important; }
-  .gap-3 { gap: 6px !important; }
-  .gap-4 { gap: 8px !important; }
-  .mb-6 { margin-bottom: 12px !important; }
-
-  .text-lg { font-size: 0.9rem !important; }
-  .text-xl { font-size: 1rem !important; }
-
-  .w-80 {
-    width: calc(100vw - 32px) !important;
-  }
 }
