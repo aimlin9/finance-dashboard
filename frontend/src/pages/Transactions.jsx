@@ -223,13 +223,13 @@ export default function Transactions() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <form onSubmit={handleSearch} className="flex-1 min-w-[200px] relative">
+        <form onSubmit={handleSearch} className="flex-1 relative">
           <Search size={18} className="absolute left-3 top-3 text-gray-500" />
           <input
             type="text"
             value={search}
             onChange={function(e) { setSearch(e.target.value); }}
-            placeholder="Search descriptions..."
+            placeholder="Search..."
             className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-indigo-500"
           />
         </form>
@@ -237,7 +237,7 @@ export default function Transactions() {
         <select
           value={categoryFilter}
           onChange={function(e) { setCategoryFilter(e.target.value); setPage(1); }}
-          className="px-4 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+          className="px-3 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
         >
           <option value="">All Categories</option>
           <option value="food">Food</option>
@@ -254,7 +254,7 @@ export default function Transactions() {
         <select
           value={typeFilter}
           onChange={function(e) { setTypeFilter(e.target.value); setPage(1); }}
-          className="px-4 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+          className="px-3 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
         >
           <option value="">All Types</option>
           <option value="debit">Debit</option>
@@ -273,10 +273,10 @@ export default function Transactions() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-800">
-                <th className="text-left px-6 py-4 text-sm text-gray-500 font-medium">Date</th>
-                <th className="text-left px-6 py-4 text-sm text-gray-500 font-medium">Description</th>
-                <th className="text-left px-6 py-4 text-sm text-gray-500 font-medium">Category</th>
-                <th className="text-right px-6 py-4 text-sm text-gray-500 font-medium">Amount</th>
+                <th className="text-left px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-500 font-medium">Date</th>
+                <th className="text-left px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-500 font-medium">Description</th>
+                <th className="text-left px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-500 font-medium hidden sm:table-cell">Category</th>
+                <th className="text-right px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-500 font-medium">Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -287,15 +287,13 @@ export default function Transactions() {
                     className="border-b border-gray-800/50 hover:bg-gray-800/30 cursor-pointer"
                     onClick={function() { openDetail(tx); }}
                   >
-                    <td className="px-6 py-4 text-gray-400 text-sm">
-                      {format(new Date(tx.date), 'dd MMM yyyy')}
+                    <td className="px-3 sm:px-6 py-3 text-gray-400 text-xs sm:text-sm whitespace-nowrap">
+                      {format(new Date(tx.date), 'dd MMM')}
                     </td>
-                    <td className="px-6 py-4 text-white text-sm">
-                      {tx.description.length > 60
-                        ? tx.description.substring(0, 60) + '...'
-                        : tx.description}
+                    <td className="px-3 sm:px-6 py-3 text-white text-xs sm:text-sm max-w-[120px] sm:max-w-none truncate">
+                      {tx.description}
                     </td>
-                    <td className="px-6 py-4" onClick={function(e) { e.stopPropagation(); }}>
+                    <td className="px-3 sm:px-6 py-3 hidden sm:table-cell" onClick={function(e) { e.stopPropagation(); }}>
                       {editingId === tx.id ? (
                         <select
                           value={editCategory}
@@ -324,8 +322,8 @@ export default function Transactions() {
                         </span>
                       )}
                     </td>
-                    <td className={'px-6 py-4 text-right text-sm font-medium ' + (tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
-                      {tx.type === 'credit' ? '+' : '-'} GHS {parseFloat(tx.amount).toFixed(2)}
+                    <td className={'px-3 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium whitespace-nowrap ' + (tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
+                      {tx.type === 'credit' ? '+' : '-'}{parseFloat(tx.amount).toFixed(2)}
                     </td>
                   </tr>
                 );
@@ -335,8 +333,8 @@ export default function Transactions() {
         )}
 
         {totalCount > 0 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-800">
-            <p className="text-sm text-gray-500">{totalCount} transactions</p>
+          <div className="flex items-center justify-between px-3 sm:px-6 py-3 border-t border-gray-800">
+            <p className="text-xs sm:text-sm text-gray-500">{totalCount} total</p>
             <div className="flex gap-2">
               <div
                 onClick={function() { if (prevPage) setPage(page - 1); }}
@@ -344,7 +342,7 @@ export default function Transactions() {
               >
                 <ChevronLeft size={16} />
               </div>
-              <span className="px-3 py-2 text-sm text-gray-400">Page {page}</span>
+              <span className="px-3 py-2 text-xs sm:text-sm text-gray-400">Page {page}</span>
               <div
                 onClick={function() { if (nextPage) setPage(page + 1); }}
                 className={'p-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white transition cursor-pointer ' + (!nextPage ? 'opacity-30 pointer-events-none' : '')}
@@ -358,7 +356,7 @@ export default function Transactions() {
 
       {selectedTx && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-auto">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-6 max-w-lg w-full max-h-[90vh] overflow-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-white">Transaction Details</h2>
               <div
@@ -380,37 +378,31 @@ export default function Transactions() {
 
             <div className="space-y-4 mb-6">
               <div className="flex justify-between py-3 border-b border-gray-800">
-                <span className="text-gray-500">Description</span>
-                <span className="text-white text-right max-w-[60%]">{selectedTx.description}</span>
+                <span className="text-gray-500 text-sm">Description</span>
+                <span className="text-white text-sm text-right max-w-[60%] break-words">{selectedTx.description}</span>
               </div>
               <div className="flex justify-between py-3 border-b border-gray-800">
-                <span className="text-gray-500">Category</span>
+                <span className="text-gray-500 text-sm">Category</span>
                 <span className={'px-3 py-1 rounded-full text-xs font-medium ' + (CATEGORY_COLORS[selectedTx.category] || CATEGORY_COLORS.other)}>
                   {selectedTx.category}
                 </span>
               </div>
               <div className="flex justify-between py-3 border-b border-gray-800">
-                <span className="text-gray-500">Type</span>
-                <span className={'font-medium ' + (selectedTx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
-                  {selectedTx.type === 'credit' ? 'Credit (Money In)' : 'Debit (Money Out)'}
+                <span className="text-gray-500 text-sm">Type</span>
+                <span className={'text-sm font-medium ' + (selectedTx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
+                  {selectedTx.type === 'credit' ? 'Credit' : 'Debit'}
                 </span>
               </div>
               {selectedTx.balance_after && (
                 <div className="flex justify-between py-3 border-b border-gray-800">
-                  <span className="text-gray-500">Balance After</span>
-                  <span className="text-white">GHS {parseFloat(selectedTx.balance_after).toFixed(2)}</span>
+                  <span className="text-gray-500 text-sm">Balance After</span>
+                  <span className="text-white text-sm">GHS {parseFloat(selectedTx.balance_after).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between py-3 border-b border-gray-800">
-                <span className="text-gray-500">Confidence</span>
-                <span className="text-gray-400">{(selectedTx.category_confidence * 100).toFixed(0)}%</span>
+                <span className="text-gray-500 text-sm">Confidence</span>
+                <span className="text-gray-400 text-sm">{(selectedTx.category_confidence * 100).toFixed(0)}%</span>
               </div>
-              {selectedTx.is_manually_edited && (
-                <div className="flex justify-between py-3 border-b border-gray-800">
-                  <span className="text-gray-500">Manually Edited</span>
-                  <span className="text-amber-400">Yes</span>
-                </div>
-              )}
             </div>
 
             <div className="flex items-center gap-3 p-4 bg-gray-800/50 rounded-xl">
