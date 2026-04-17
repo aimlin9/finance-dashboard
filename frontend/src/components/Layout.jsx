@@ -138,7 +138,6 @@ function Sidebar({ onNavigate }) {
           <Target size={20} />
           Savings Goals
         </NavLink>
-       
       </nav>
 
       <div className="relative" ref={menuRef}>
@@ -151,7 +150,6 @@ function Sidebar({ onNavigate }) {
               <Settings size={16} />
               <span>Settings</span>
             </div>
-
             <div
               onClick={handleToggleTheme}
               className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:bg-gray-700 transition text-sm cursor-pointer"
@@ -159,10 +157,8 @@ function Sidebar({ onNavigate }) {
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
               <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
             </div>
-
             <div className="border-t border-gray-700" />
-
-            <a
+            
               href="https://github.com/aimlin9/finance-dashboard"
               target="_blank"
               rel="noopener noreferrer"
@@ -171,8 +167,7 @@ function Sidebar({ onNavigate }) {
               <ExternalLink size={16} />
               <span>GitHub Repo</span>
             </a>
-
-            <a
+            
               href="https://dev.to/aimlin9"
               target="_blank"
               rel="noopener noreferrer"
@@ -181,9 +176,7 @@ function Sidebar({ onNavigate }) {
               <HelpCircle size={16} />
               <span>Help and Resources</span>
             </a>
-
             <div className="border-t border-gray-700" />
-
             <div
               onClick={handleLogout}
               className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-gray-700 transition text-sm cursor-pointer"
@@ -201,9 +194,9 @@ function Sidebar({ onNavigate }) {
           <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
             {userInitial}
           </div>
-          <div className="flex-1 text-left">
-            <p className="text-sm text-white">{userName}</p>
-            <p className="text-xs text-gray-500">{userEmail}</p>
+          <div className="flex-1 text-left min-w-0">
+            <p className="text-sm text-white truncate">{userName}</p>
+            <p className="text-xs text-gray-500 truncate">{userEmail}</p>
           </div>
           <ChevronUp
             size={16}
@@ -214,6 +207,7 @@ function Sidebar({ onNavigate }) {
     </>
   );
 }
+
 export default function Layout({ children }) {
   var [mobileOpen, setMobileOpen] = useState(false);
   var location = useLocation();
@@ -251,8 +245,7 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex">
-      {/* Desktop Sidebar */}
+    <div className="min-h-screen bg-gray-950 flex overflow-hidden w-full">
       <aside className="hidden lg:flex w-64 bg-gray-900 border-r border-gray-800 p-6 flex-col fixed h-full overflow-visible">
         <div className="flex items-center gap-3 mb-1">
           <Logo size={28} />
@@ -262,13 +255,11 @@ export default function Layout({ children }) {
         <Sidebar />
       </aside>
 
-      {/* Mobile Overlay */}
       <div
         className={'lg:hidden fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 ' + (mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none')}
         onClick={closeMobile}
       />
 
-      {/* Mobile Sidebar */}
       <aside className={'lg:hidden fixed top-0 left-0 h-full w-72 bg-gray-900 border-r border-gray-800 p-6 flex flex-col z-50 transition-transform duration-300 ease-in-out ' + (mobileOpen ? 'translate-x-0' : '-translate-x-full')}>
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
@@ -288,9 +279,7 @@ export default function Layout({ children }) {
         <Sidebar onNavigate={closeMobile} />
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 lg:ml-64">
-        {/* Desktop Top Bar */}
+      <div className="flex-1 lg:ml-64 min-w-0 w-full">
         <div className="hidden lg:flex items-center gap-4 px-8 py-4 border-b border-gray-800 sticky top-0 bg-gray-950 z-20">
           <div className="flex-1 max-w-md">
             <GlobalSearch />
@@ -298,7 +287,6 @@ export default function Layout({ children }) {
           <Notifications />
         </div>
 
-        {/* Mobile Header */}
         <div className="lg:hidden flex items-center justify-between p-4 bg-gray-900 border-b border-gray-800 sticky top-0 z-30">
           <HamburgerIcon
             isOpen={mobileOpen}
@@ -311,7 +299,7 @@ export default function Layout({ children }) {
           <Notifications />
         </div>
 
-        <main className="p-4 sm:p-6 lg:p-8 overflow-auto">
+        <main className="p-4 sm:p-6 lg:p-8 overflow-x-hidden">
           {children}
         </main>
       </div>
