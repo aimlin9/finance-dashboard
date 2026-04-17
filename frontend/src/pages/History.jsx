@@ -71,38 +71,34 @@ export default function History() {
                   <div className="w-10 h-10 rounded-lg bg-indigo-600/20 flex items-center justify-center shrink-0">
                     <FileText size={20} className="text-indigo-400" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium text-sm truncate">{stmt.file_name}</p>
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-white font-medium text-sm truncate flex-1">{stmt.file_name}</p>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ' + statusStyle.bg + ' ' + statusStyle.color}>
+                          <StatusIcon size={12} />
+                          {stmt.status}
+                        </span>
+                        <button
+                          onClick={function() { setConfirmDelete(stmt.id); }}
+                          className="p-2 rounded-lg text-gray-600 hover:text-red-400 hover:bg-gray-800 transition"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                       <span className="text-xs text-gray-500">
                         {format(new Date(stmt.uploaded_at), 'dd MMM yyyy')}
                       </span>
                       {stmt.bank_name && (
-                        <span className="text-xs text-gray-500 uppercase">
-                          {stmt.bank_name}
-                        </span>
+                        <span className="text-xs text-gray-500 uppercase">{stmt.bank_name}</span>
                       )}
-                      <span className="text-xs text-gray-500">
-                        {stmt.file_type.toUpperCase()}
-                      </span>
+                      <span className="text-xs text-gray-500">{stmt.file_type.toUpperCase()}</span>
                       {stmt.total_transactions > 0 && (
-                        <span className="text-xs text-gray-500">
-                          {stmt.total_transactions} txns
-                        </span>
+                        <span className="text-xs text-gray-500">{stmt.total_transactions} transactions</span>
                       )}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ' + statusStyle.bg + ' ' + statusStyle.color}>
-                      <StatusIcon size={12} />
-                      {stmt.status}
-                    </span>
-                    <button
-                      onClick={function() { setConfirmDelete(stmt.id); }}
-                      className="p-2 rounded-lg text-gray-600 hover:text-red-400 hover:bg-gray-800 transition"
-                    >
-                      <Trash2 size={16} />
-                    </button>
                   </div>
                 </div>
               </div>

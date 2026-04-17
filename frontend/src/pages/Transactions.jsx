@@ -270,13 +270,13 @@ export default function Transactions() {
             No transactions found. Upload a bank statement first.
           </div>
         ) : (
-          <table className="w-full">
+          <table className="w-full table-fixed">
             <thead>
               <tr className="border-b border-gray-800">
-                <th className="text-left px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-500 font-medium">Date</th>
-                <th className="text-left px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-500 font-medium">Description</th>
-                <th className="text-left px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-500 font-medium hidden sm:table-cell">Category</th>
-                <th className="text-right px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-500 font-medium">Amount</th>
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500 font-medium w-[70px] sm:w-[120px]">Date</th>
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500 font-medium">Description</th>
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500 font-medium hidden sm:table-cell w-[100px]">Category</th>
+                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500 font-medium w-[80px] sm:w-[120px]">Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -287,13 +287,13 @@ export default function Transactions() {
                     className="border-b border-gray-800/50 hover:bg-gray-800/30 cursor-pointer"
                     onClick={function() { openDetail(tx); }}
                   >
-                    <td className="px-3 sm:px-6 py-3 text-gray-400 text-xs sm:text-sm whitespace-nowrap">
+                    <td className="px-3 sm:px-4 py-3 text-gray-400 text-xs sm:text-sm whitespace-nowrap">
                       {format(new Date(tx.date), 'dd MMM')}
                     </td>
-                    <td className="px-3 sm:px-6 py-3 text-white text-xs sm:text-sm max-w-[120px] sm:max-w-none truncate">
+                    <td className="px-3 sm:px-4 py-3 text-white text-xs sm:text-sm truncate">
                       {tx.description}
                     </td>
-                    <td className="px-3 sm:px-6 py-3 hidden sm:table-cell" onClick={function(e) { e.stopPropagation(); }}>
+                    <td className="px-3 sm:px-4 py-3 hidden sm:table-cell" onClick={function(e) { e.stopPropagation(); }}>
                       {editingId === tx.id ? (
                         <select
                           value={editCategory}
@@ -316,13 +316,12 @@ export default function Transactions() {
                         <span
                           onClick={function() { setEditingId(tx.id); setEditCategory(tx.category); }}
                           className={'px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition ' + (CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other)}
-                          title="Click to change category"
                         >
                           {tx.category}
                         </span>
                       )}
                     </td>
-                    <td className={'px-3 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium whitespace-nowrap ' + (tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
+                    <td className={'px-3 sm:px-4 py-3 text-right text-xs sm:text-sm font-medium whitespace-nowrap ' + (tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
                       {tx.type === 'credit' ? '+' : '-'}{parseFloat(tx.amount).toFixed(2)}
                     </td>
                   </tr>
