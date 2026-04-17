@@ -202,27 +202,27 @@ export default function Transactions() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Transactions</h1>
-        <div className="flex items-center gap-2">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white mb-3">Transactions</h1>
+        <div className="flex gap-2">
           <div
             onClick={handlePrintReport}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition cursor-pointer"
           >
-            <Printer size={16} />
-            Print Report
+            <Printer size={14} />
+            Print
           </div>
           <div
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition cursor-pointer"
           >
-            <Download size={16} />
-            Export CSV
+            <Download size={14} />
+            Export
           </div>
         </div>
       </div>
 
-      <div className="flex gap-3 mb-6 flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <form onSubmit={handleSearch} className="flex-1 min-w-[200px] relative">
           <Search size={18} className="absolute left-3 top-3 text-gray-500" />
           <input
