@@ -334,18 +334,18 @@ export default function Transactions() {
                 return (
                   <div
                     key={tx.id}
-                    className="p-4 hover:bg-gray-800/30 cursor-pointer"
+                    className="p-4 hover:bg-gray-800/30 cursor-pointer overflow-hidden"
                     onClick={function() { openDetail(tx); }}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-white text-sm font-medium truncate flex-1 mr-3">{tx.description}</p>
-                      <p className={'text-sm font-semibold whitespace-nowrap ' + (tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <p className="text-white text-sm font-medium truncate min-w-0 flex-1">{tx.description}</p>
+                      <p className={'text-sm font-semibold shrink-0 ' + (tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400')}>
                         {tx.type === 'credit' ? '+' : '-'}{parseFloat(tx.amount).toFixed(2)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-500">{format(new Date(tx.date), 'dd MMM yyyy')}</span>
-                      <span className={'px-2 py-0.5 rounded-full text-xs font-medium ' + (CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other)}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{format(new Date(tx.date), 'dd MMM')}</span>
+                      <span className={'px-2 py-0.5 rounded-full text-xs ' + (CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other)}>
                         {tx.category}
                       </span>
                     </div>
