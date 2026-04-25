@@ -91,35 +91,65 @@ class PDFParser:
             for page in pdf.pages:
                 tables = page.extract_tables()
                 for table in tables:
-                    for row in table:
-                        if not row or len(row) < 5:
+                    if not table or len(table) < 2:
+                        continue
+
+                    # Find header row and column positions
+                    header_idx = None
+                    col_map = {}
+                    for i, row in enumerate(table):
+                        if not row:
                             continue
-                        tx = self._parse_ecobank_row(row)
+                        row_text = ' '.join([c.lower() if c else '' for c in row])
+                        if 'transaction' in row_text and 'debit' in row_text:
+                            header_idx = i
+                            for j, cell in enumerate(row):
+                                if not cell:
+                                    continue
+                                cell_lower = cell.strip().lower()
+                                if 'transaction' in cell_lower and 'date' in cell_lower:
+                                    col_map['date'] = j
+                                elif cell_lower == 'description':
+                                    col_map['desc'] = j
+                                elif cell_lower == 'debit':
+                                    col_map['debit'] = j
+                                elif cell_lower == 'credit':
+                                    col_map['credit'] = j
+                                elif cell_lower == 'balance':
+                                    col_map['balance'] = j
+                            break
+
+                    if header_idx is None or 'date' not in col_map:
+                        continue
+
+                    # Parse data rows after header
+                    for row in table[header_idx + 1:]:
+                        if not row or len(row) <= max(col_map.values()):
+                            continue
+                        tx = self._parse_ecobank_row_mapped(row, col_map)
                         if tx:
                             transactions.append(tx)
+
         return transactions
 
-    def _parse_ecobank_row(self, row):
+    def _parse_ecobank_row_mapped(self, row, col_map):
         row = [cell.strip() if cell else '' for cell in row]
 
-        # Ecobank columns: Transaction Date | Description | Value Date | Debit | Credit | Balance
-        date_str = row[0]
-        description = row[1]
-        # row[2] is value date, skip
-        debit_str = row[3] if len(row) > 3 else ''
-        credit_str = row[4] if len(row) > 4 else ''
-        balance_str = row[5] if len(row) > 5 else ''
+        date_str = row[col_map['date']]
+        description = row[col_map.get('desc', 1)]
+        debit_str = row[col_map.get('debit', 3)]
+        credit_str = row[col_map.get('credit', 4)]
+        balance_str = row[col_map.get('balance', 5)] if 'balance' in col_map else ''
 
-        # Skip headers and special rows
         if not date_str:
             return None
-        skip_words = ['transaction', 'date', 'opening balance', 'closing balance']
+
+        skip_words = ['opening balance', 'closing balance']
         if any(w in date_str.lower() for w in skip_words):
             return None
-        if any(w in description.lower() for w in ['opening balance', 'closing balance']):
+        if any(w in description.lower() for w in skip_words):
             return None
 
-        # Parse date (DD-Mon-YYYY e.g. 13-Jan-2026)
         date = None
         for fmt in ['%d-%b-%Y', '%d-%B-%Y', '%d/%m/%Y']:
             try:
@@ -131,14 +161,9 @@ class PDFParser:
         if not date:
             return None
 
-        # Clean amounts
         debit_str = debit_str.replace(',', '').replace(' ', '')
         credit_str = credit_str.replace(',', '').replace(' ', '')
         balance_str = balance_str.replace(',', '').replace(' ', '')
-
-        # Skip rows where both debit and credit are 0.00
-        debit_val = 0
-        credit_val = 0
 
         try:
             debit_val = float(debit_str) if debit_str else 0
@@ -183,39 +208,73 @@ class PDFParser:
             for page in pdf.pages:
                 tables = page.extract_tables()
                 for table in tables:
-                    for row in table:
-                        if not row or len(row) < 8:
+                    if not table or len(table) < 2:
+                        continue
+
+                    # Find header row and column positions
+                    header_idx = None
+                    col_map = {}
+                    for i, row in enumerate(table):
+                        if not row:
                             continue
-                        tx = self._parse_momo_row(row)
+                        row_text = ' '.join([c.upper() if c else '' for c in row])
+                        if 'TRANSACTION DATE' in row_text and 'AMOUNT' in row_text:
+                            header_idx = i
+                            for j, cell in enumerate(row):
+                                if not cell:
+                                    continue
+                                cell_upper = cell.strip().upper().replace('\n', ' ')
+                                if 'TRANSACTION DATE' in cell_upper:
+                                    col_map['date'] = j
+                                elif 'FROM NAME' in cell_upper:
+                                    col_map['from_name'] = j
+                                elif 'TRANS' in cell_upper and 'TYPE' in cell_upper:
+                                    col_map['trans_type'] = j
+                                elif cell_upper == 'AMOUNT':
+                                    col_map['amount'] = j
+                                elif 'BAL BEFORE' in cell_upper:
+                                    col_map['bal_before'] = j
+                                elif 'BAL AFTER' in cell_upper:
+                                    col_map['bal_after'] = j
+                                elif 'TO NAME' in cell_upper:
+                                    col_map['to_name'] = j
+                                elif cell_upper == 'OVA':
+                                    col_map['ova'] = j
+                            break
+
+                    if header_idx is None or 'date' not in col_map:
+                        continue
+
+                    for row in table[header_idx + 1:]:
+                        if not row:
+                            continue
+                        tx = self._parse_momo_row_mapped(row, col_map)
                         if tx:
                             transactions.append(tx)
+
         return transactions
 
-    def _parse_momo_row(self, row):
+    def _parse_momo_row_mapped(self, row, col_map):
         row = [cell.strip() if cell else '' for cell in row]
 
-        # MoMo columns: TRANSACTION DATE | FROM ACCT | FROM NAME | FROM NO. | TRANS. TYPE | AMOUNT | FEES | E-LEVY | BAL BEFORE | BAL AFTER | TO NO. | TO NAME | TO ACCT | F_ID | REF | OVA
-        date_str = row[0]
-        from_name = row[2] if len(row) > 2 else ''
-        trans_type = row[4] if len(row) > 4 else ''
-        amount_str = row[5] if len(row) > 5 else ''
-        bal_before_str = row[8] if len(row) > 8 else ''
-        bal_after_str = row[9] if len(row) > 9 else ''
-        to_name = row[11] if len(row) > 11 else ''
-        ova = row[15] if len(row) > 15 else ''
+        date_str = row[col_map['date']] if col_map['date'] < len(row) else ''
+        from_name = row[col_map.get('from_name', 2)] if col_map.get('from_name', 2) < len(row) else ''
+        trans_type = row[col_map.get('trans_type', 4)] if col_map.get('trans_type', 4) < len(row) else ''
+        amount_str = row[col_map.get('amount', 5)] if col_map.get('amount', 5) < len(row) else ''
+        bal_before_str = row[col_map.get('bal_before', 8)] if col_map.get('bal_before', 8) < len(row) else ''
+        bal_after_str = row[col_map.get('bal_after', 9)] if col_map.get('bal_after', 9) < len(row) else ''
+        to_name = row[col_map.get('to_name', 11)] if col_map.get('to_name', 11) < len(row) else ''
+        ova = row[col_map.get('ova', 15)] if col_map.get('ova', 15) < len(row) else ''
 
-        # Skip header rows
         if not date_str:
             return None
-        skip_words = ['transaction date', 'transaction\ndate', 'time run', 'msisdn', 'from:', 'mobile money']
+
+        skip_words = ['transaction date', 'time run', 'msisdn', 'from:', 'mobile money', 'powered']
         if any(w in date_str.lower() for w in skip_words):
             return None
-        if 'TRANSACTION DATE' in date_str.upper():
-            return None
 
-        # Parse date (DD-Mon-YYYY HH:MM:SS AM/PM)
+        # Parse date
         date = None
-        # Remove extra whitespace and newlines
         date_str = ' '.join(date_str.split())
         for fmt in ['%d-%b-%Y %I:%M:%S %p', '%d-%b-%Y %H:%M:%S %p', '%d-%b-%Y %I:%M:%S%p', '%d-%b-%Y']:
             try:
@@ -225,7 +284,6 @@ class PDFParser:
                 continue
 
         if not date:
-            # Try extracting just the date part
             date_match = re.match(r'(\d{2}-\w{3}-\d{4})', date_str)
             if date_match:
                 try:
@@ -245,7 +303,8 @@ class PDFParser:
         if amount == 0:
             return None
 
-        # Determine credit or debit from balance change
+        # Determine type from balance change
+        bal_after = None
         try:
             bal_before = float(bal_before_str.replace(',', '').replace(' ', ''))
             bal_after = float(bal_after_str.replace(',', '').replace(' ', ''))
@@ -254,15 +313,14 @@ class PDFParser:
             else:
                 tx_type = 'debit'
         except (ValueError, TypeError):
-            # Fallback: use trans type
             credit_types = ['cash_in', 'refund']
-            if trans_type.lower() in credit_types:
+            if trans_type.lower().strip() in credit_types:
                 tx_type = 'credit'
             else:
                 tx_type = 'debit'
 
-        # Build description from available info
-        trans_type_clean = trans_type.replace('\n', ' ').strip()
+        # Build description
+        trans_type_clean = ' '.join(trans_type.split())
         from_name_clean = ' '.join(from_name.split())
         to_name_clean = ' '.join(to_name.split())
         ova_clean = ' '.join(ova.split()) if ova else ''
@@ -286,5 +344,5 @@ class PDFParser:
             'description': description,
             'amount': amount,
             'type': tx_type,
-            'balance_after': bal_after if 'bal_after' in dir() else None,
+            'balance_after': bal_after,
         }
