@@ -14,6 +14,20 @@ class PDFParser:
             return self._parse_ecobank(file_path)
         elif 'momo' in self.bank_name or 'mtn' in self.bank_name:
             return self._parse_momo(file_path)
+        elif self.bank_name in ('unknown', 'gcb'):
+            return self._auto_detect_and_parse(file_path)
+        else:
+            return self._parse_gcb(file_path)
+
+    def _auto_detect_and_parse(self, file_path):
+        with pdfplumber.open(file_path) as pdf:
+            first_page_text = pdf.pages[0].extract_text() or ''
+            first_page_lower = first_page_text.lower()
+
+        if 'ecobank' in first_page_lower or 'pan african bank' in first_page_lower:
+            return self._parse_ecobank(file_path)
+        elif 'mobile money' in first_page_lower or 'mtn' in first_page_lower or 'msisdn' in first_page_lower:
+            return self._parse_momo(file_path)
         else:
             return self._parse_gcb(file_path)
 
