@@ -1,3 +1,6 @@
+import pdfplumber
+
+
 class BankDetector:
     """Identifies which bank a statement belongs to from filename and content."""
 
@@ -29,3 +32,13 @@ class BankDetector:
                     return bank
 
         return 'unknown'
+
+    @classmethod
+    def detect_from_pdf(cls, file_path):
+        """Read PDF content and detect bank from text."""
+        try:
+            with pdfplumber.open(file_path) as pdf:
+                text = pdf.pages[0].extract_text() or ''
+            return cls.detect('', text)
+        except Exception:
+            return 'unknown'

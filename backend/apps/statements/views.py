@@ -13,6 +13,7 @@ from apps.transactions.models import Transaction
 from apps.transactions.categorizer import TransactionCategorizer
 from apps.analytics.summarizer import compute_monthly_summary
 
+
 class StatementUploadView(generics.CreateAPIView):
     """POST /api/statements/upload/ — Upload and parse a bank statement."""
     parser_classes = [MultiPartParser]
@@ -25,9 +26,9 @@ class StatementUploadView(generics.CreateAPIView):
         uploaded_file = serializer.validated_data['file']
         ext = uploaded_file.name.rsplit('.', 1)[-1].lower()
 
-        # Step 1: Detect which bank
+        # Step 1: Detect which bank from filename and content preview
         content_preview = uploaded_file.read(500).decode('utf-8', errors='ignore')
-        uploaded_file.seek(0)  # Reset file pointer to beginning
+        uploaded_file.seek(0)
         bank_name = BankDetector.detect(uploaded_file.name, content_preview)
 
         # Step 2: Create the statement record
@@ -64,6 +65,12 @@ class StatementUploadView(generics.CreateAPIView):
                         'error': 'This PDF is password-protected. Please unlock it first and re-upload.'
                     }, status=status.HTTP_400_BAD_REQUEST)
 
+                # Detect bank from PDF content if filename didn't match
+                if bank_name == 'unknown':
+                    bank_name = BankDetector.detect_from_pdf(tmp_path)
+                    statement.bank_name = bank_name
+                    statement.save()
+
                 parser = PDFParser(bank_name)
                 raw_transactions = parser.extract(tmp_path)
                 os.unlink(tmp_path)
@@ -89,13 +96,13 @@ class StatementUploadView(generics.CreateAPIView):
 
             Transaction.objects.bulk_create(transactions_to_create)
 
-            # Step 5: Update statement status
+            # Step 6: Update statement status
             statement.total_transactions = len(transactions_to_create)
             statement.status = 'done'
             statement.processed_at = timezone.now()
             statement.save()
 
-            # Step 6: Compute monthly summaries
+            # Step 7: Compute monthly summaries
             months_seen = set()
             for tx in raw_transactions:
                 month_date = tx['date'].replace(day=1)
@@ -109,7 +116,7 @@ class StatementUploadView(generics.CreateAPIView):
             statement.error_message = str(e)
             statement.save()
             return Response({
-                'error': f'Failed to parse statement: {str(e)}'
+                'error': 'Failed to parse statement: ' + str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(
@@ -137,16 +144,13 @@ class StatementDetailView(generics.RetrieveDestroyAPIView):
         from apps.analytics.summarizer import compute_monthly_summary
         from apps.transactions.models import Transaction
 
-        # Get affected months before deletion
         affected_months = set()
         transactions = Transaction.objects.filter(statement=instance)
         for tx in transactions:
             affected_months.add(tx.date.replace(day=1))
 
-        # Delete the statement (cascades to transactions)
         instance.delete()
 
-        # Recompute summaries for affected months
         for month_date in affected_months:
             compute_monthly_summary(self.request.user, month_date)
 
