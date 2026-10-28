@@ -1,151 +1,176 @@
-# FinTrack Ghana 🇬🇭
+# FinTrack Ghana
 
-**A full-stack personal finance dashboard that automatically parses Ghanaian bank statements, categorizes transactions using NLP, and delivers AI-powered spending insights.**
+**Know where every cedi goes.** A full-stack personal finance app that reads Ghanaian bank and MoMo statements, sorts every transaction into categories, and turns a month of cryptic statement lines into something you can act on.
 
-Most Ghanaians have no clear picture of where their money goes. Bank apps show raw transactions but offer zero analysis. FinTrack Ghana solves this — upload a bank statement (PDF or CSV) and within minutes get a complete spending breakdown, category insights, and personalized financial advice powered by AI.
+Most bank apps show a list of dates, amounts and reference codes like `300304******0000 Ref 0736`. FinTrack reads a GCB, Ecobank or MTN MoMo statement (or a CSV from any other bank) and shows where the money went, what repeats every month, what changed, and what to adjust.
 
-## What It Does
+- **Live app:** [finance-dashboard-phi-mauve.vercel.app](https://finance-dashboard-phi-mauve.vercel.app)
+- **API:** [finance-dashboard-production-8a66.up.railway.app/api/](https://finance-dashboard-production-8a66.up.railway.app/api/)
 
-- **Automatic Statement Parsing** — Upload a PDF or CSV from GCB, Ecobank, MTN MoMo, Absa, or Fidelity. The system extracts every transaction automatically.
-- **NLP Categorization** — Transactions are classified into categories (Food, Transport, Utilities, Health, etc.) using keyword rules and a trained spaCy text classifier.
-- **Spending Dashboard** — Visualize your spending with pie charts, bar charts, and income vs. expense summaries built with Recharts.
-- **AI Financial Insights** — Google Gemini analyzes your spending patterns and gives plain-English advice like "You spent 40% more on food in March."
-- **Budget Tracking** — Set monthly budgets per category with progress bars and alerts at 80% and 100%.
-- **Month-over-Month Comparison** — Compare spending across any two months side by side.
-- **CSV Export** — Download your transactions as a clean CSV file.
-- **Password Reset** — Secure token-based password reset flow.
+## Features
 
-## Tech Stack
+**Reading statements**
+- GCB, Ecobank and MTN MoMo statements as PDF or CSV, detected automatically
+- A generic CSV importer that finds the header row itself, so Absa, Fidelity, Stanbic and other banks' exports work
+- Handles Excel's UTF-8 BOM and Windows-1252 CSVs, and gives clear errors for locked PDFs and unreadable files
+- Upload several statements at once; transactions already imported from an overlapping statement are skipped
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Backend | Python, Django, Django REST Framework | API, authentication, business logic |
-| Database | SQLite (dev) / PostgreSQL (production) | Data storage |
-| Auth | JWT via SimpleJWT | Secure token-based authentication |
-| File Parsing | pdfplumber, pandas | Extract transactions from PDF/CSV |
-| NLP | spaCy | Transaction categorization |
-| AI | Google Gemini 2.5 Flash | Financial insight generation |
-| Frontend | React, Vite, Tailwind CSS | User interface |
-| Charts | Recharts | Data visualization |
+**Categorizing**, in four layers, so nothing is guessed with false confidence:
+1. The user's own rules, learned when they correct a transaction and choose "Remember"
+2. ~200 Ghanaian merchants and keywords (Shoprite, Bolt, ECG, GWCL, Telecel, E-levy, KNUST…), matched on whole words
+3. Transaction direction: money in is income or a transfer, never "food"
+4. A spaCy text classifier, used only when the description shares vocabulary with its training data
 
-## Project Status
+Fourteen categories built for Ghana, including Church & Giving, Fees & Charges and Cash Withdrawal.
 
-🚧 **Currently in development** — building in public over 6 weeks.
+**Understanding the month**
+- Overview: what was left over, money in vs out with month-over-month change, a cash-flow chart, spending by category, a daily spending calendar, spending by weekday, top payees, largest payments
+- Signals: plain facts computed from your own numbers (fees and E-levy cost, cash share, biggest category change)
+- Optional advisor note from Google Gemini, sent category totals only, never individual transactions
+- Recurring payments grouped by payee, with cadence, next expected date and yearly cost
+- Month comparison with a diverging category chart
+- Budgets per category with suggested limits from your 3-month average, and alerts at 80% and 100%
+- Savings goals with the monthly amount needed to hit a deadline
+- A printable monthly report (or save as PDF), and CSV export of any filtered view
 
-- [x] Week 1 — Django setup, custom User model, JWT auth, admin panel
-- [x] Week 2 — File parsing engine (PDF + CSV parsers, bank detection)
-- [x] Week 3 — NLP categorization (keyword rules + spaCy classifier)
-- [x] Week 4 — Analytics, monthly summaries, Gemini AI insights
-- [x] Budget tracking with progress and alerts
-- [x] CSV export for transactions
-- [x] Password reset flow
-- [x] Week 5 — React frontend dashboard
-- [x] Week 6 — Polish, deploy, demo video
+**App experience**
+- Designed for phones first: bottom tab bar, swipe-to-dismiss sheets, safe-area aware on iPhone; installable to the home screen on Android and iOS
+- Light and dark themes (or follow the device), a ⌘K / Ctrl K command palette, keyboard-accessible controls
+- Transactions page with URL-synced filters, sorting, bulk recategorizing and notes
+- Sessions refresh automatically; you can change your password, export everything and delete your account
 
-## API Endpoints
+## Tech stack
 
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register/` | Create new account |
-| POST | `/api/auth/login/` | Get JWT tokens |
-| POST | `/api/auth/refresh/` | Refresh access token |
-| POST | `/api/auth/logout/` | Blacklist refresh token |
-| GET/PATCH | `/api/auth/me/` | View/update profile |
-| POST | `/api/auth/password-reset/` | Request password reset |
-| POST | `/api/auth/password-reset/confirm/` | Set new password |
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.12, Django 5, Django REST Framework, SimpleJWT |
+| Parsing | pdfplumber, pikepdf, a header-detecting CSV importer |
+| Categorizing | Keyword rules + spaCy 3.7 text classifier |
+| AI | Google Gemini 2.5 Flash |
+| Database | SQLite locally, PostgreSQL in production |
+| Frontend | React 19, Vite, Tailwind CSS 4, Zustand |
+| UI | Recharts, Motion, vaul (sheets), cmdk (command palette), Fraunces / Instrument Sans / Geist Mono |
+| Hosting | Railway (API), Vercel (web) |
 
-### Statements
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/statements/upload/` | Upload PDF or CSV |
-| GET | `/api/statements/` | List all statements |
-| GET | `/api/statements/{id}/status/` | Check processing status |
+## Local setup
 
-### Transactions
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/transactions/` | List with filters (?month, ?category, ?type, ?search) |
-| PATCH | `/api/transactions/{id}/edit/` | Correct a category |
-| GET | `/api/transactions/export/` | Download as CSV |
-
-### Analytics
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/analytics/dashboard/` | Monthly summary + breakdown |
-| GET | `/api/analytics/monthly/` | Available months |
-| GET | `/api/analytics/compare/` | Compare two months |
-| GET | `/api/analytics/insights/` | AI-generated insights |
-| GET | `/api/analytics/budget/` | Budget progress per category |
-| POST | `/api/analytics/budget/set/` | Set budget limit |
-
-## Local Setup
-
-### Prerequisites
-- Python 3.10+
-- Node.js 18+
-- Git
+**Prerequisites:** Python 3.12 (the pinned spaCy version does not build on 3.13) and Node.js 20+.
 
 ### Backend
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements_dev.txt
-pip install spacy pdfplumber google-genai python-decouple pikepdf
-python -m spacy download en_core_web_sm
-python manage.py makemigrations accounts statements transactions analytics
+python3.12 -m venv venv
+source venv/bin/activate            # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env                # optional: add GEMINI_API_KEY for advisor notes
 python manage.py migrate
 python manage.py seed_categories
-python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Create a `.env` file in `backend/`:
-GEMINI_API_KEY=AIzaSyCJasP1aNUiHgErkdkVZZTi-AwzAzLE6eU
-
-### Testing
+### Frontend
 
 ```bash
-python manage.py test
+cd frontend
+npm install
+npm run dev                         # http://localhost:5173, proxies /api to :8000
 ```
 
-29 tests covering CSV parsing, bank detection, and transaction categorization.
+Try it with the sample statement at `frontend/public/sample-statement.csv`: three months of fictional transactions in GCB format.
 
-## Architecture
+### Tests and checks
 
-User uploads PDF/CSV
-→ Bank detector identifies format
-→ Parser extracts transactions
-→ NLP categorizer assigns categories (keywords → spaCy fallback)
-→ Transactions saved to database
-→ Monthly summary computed
-→ Gemini AI generates spending insights
-→ Dashboard displays charts and advice
+```bash
+cd backend && python manage.py test     # 60 tests
+cd frontend && npm run lint && npm run build
+```
 
-## Why I Built This
+The backend tests cover parsing (including BOM and generic CSVs), categorization regressions, duplicate skipping, learned rules, summary recomputation, budgets, goals, auth security (no reset-link leaks, password change, account deletion) and per-user data isolation.
 
-Most personal finance tools are built for Western banks. In Ghana, there's no app that reads your GCB or MTN MoMo statement and tells you where your money is going. I built FinTrack Ghana to fill that gap — a tool that understands local bank formats and gives actionable insights in plain English.
+## Configuration
 
-## Live Demo
+All settings come from environment variables; see [`backend/.env.example`](backend/.env.example).
 
-- **Frontend:** [finance-dashboard-phi-mauve.vercel.app](https://finance-dashboard-phi-mauve.vercel.app)
-- **Backend API:** [finance-dashboard-production-8a66.up.railway.app](https://finance-dashboard-production-8a66.up.railway.app/api/)
+| Variable | Purpose |
+|---|---|
+| `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS` | Standard Django settings |
+| `DATABASE_URL` | PostgreSQL URL (SQLite when unset) |
+| `FRONTEND_URL` | Used in password reset emails |
+| `CORS_ALLOWED_ORIGINS` | Lock the API to your frontend (all origins allowed when unset) |
+| `GEMINI_API_KEY` | Enables advisor notes |
+| `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, … | SMTP for password resets (printed to the console when unset) |
+| `VITE_API_URL` (frontend) | API base URL in production builds |
 
-## What I'd Add Next
+## API
 
-- Celery + Redis for async file processing
-- Cloudflare R2 for cloud file storage
-- WhatsApp monthly summary via Twilio
-- Multi-bank support with more parser formats
-- Savings goal tracker
-- Email notifications for budget alerts
+<details>
+<summary>Endpoints</summary>
+
+### Auth
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register/` | Create account, returns tokens |
+| POST | `/api/auth/login/` | Get JWT tokens (rate limited) |
+| POST | `/api/auth/refresh/` | Refresh access token |
+| POST | `/api/auth/logout/` | Blacklist refresh token |
+| GET/PATCH | `/api/auth/me/` | View or update profile |
+| POST | `/api/auth/password/change/` | Change password (requires current) |
+| POST | `/api/auth/password-reset/` | Email a reset link |
+| POST | `/api/auth/password-reset/confirm/` | Set new password |
+| POST | `/api/auth/delete-account/` | Delete account and all data |
+
+### Statements
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/statements/upload/` | Upload a PDF or CSV |
+| GET | `/api/statements/` | List statements |
+| GET/DELETE | `/api/statements/{id}/` | View or delete (removes its transactions) |
+
+### Transactions
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/transactions/` | Filters: `month`, `date_from`, `date_to`, `category`, `type`, `search`, `min_amount`, `max_amount`, `ordering`, `page_size` (≤1000) |
+| PATCH | `/api/transactions/{id}/edit/` | Change category or note; optional `apply_to_similar`, `remember` |
+| POST | `/api/transactions/bulk-categorize/` | Recategorize many |
+| GET | `/api/transactions/export/` | CSV, accepts the list filters |
+| GET | `/api/transactions/recurring/` | Recurring payments |
+| GET | `/api/transactions/categories/` | Category list |
+| GET/DELETE | `/api/transactions/rules/` | Learned category rules |
+
+### Analytics
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/analytics/dashboard/?month=YYYY-MM` | Month summary, daily/weekday spending, payees, largest payments, previous month |
+| GET | `/api/analytics/monthly/` | Months with data |
+| GET | `/api/analytics/trend/` | Every month's totals |
+| GET | `/api/analytics/compare/?month1=&month2=` | Two months side by side |
+| GET | `/api/analytics/insights/?month=` | Advisor note (Gemini) |
+| GET | `/api/analytics/budget/?month=` | Budgets with spending |
+| POST | `/api/analytics/budget/set/`, `/budget/remove/` | Manage budgets |
+| GET/POST, PATCH/DELETE | `/api/analytics/savings-goals/`, `/{id}/` | Savings goals |
+
+</details>
+
+## How an upload works
+
+```
+PDF / CSV upload
+  → bank detected from file name and content
+  → bank-specific parser, or the generic CSV importer
+  → transactions already imported are skipped
+  → categorized: your rules → keywords → direction → spaCy
+  → saved atomically, monthly summaries recomputed
+  → dashboard, budgets, recurring and reports update
+```
+
+## Why I built this
+
+Personal finance tools are built for Western banks. In Ghana there was no app that reads a GCB or MTN MoMo statement and tells you, in plain language, where your money is going. FinTrack is built to understand local formats and local spending: trotro and Bolt, ECG tokens, E-levy, church, and the transfer home.
 
 ## Author
 
-**Gyimah Ramsey Opoku**
-- GitHub: [@aimlin9](https://github.com/aimlin9)
+**Gyimah Ramsey Opoku** · [GitHub @aimlin9](https://github.com/aimlin9)
 
 ## License
 
