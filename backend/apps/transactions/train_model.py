@@ -14,6 +14,10 @@ def train(output_dir='models/categorizer', n_iter=30):
     """Train the text categorizer and save the model."""
     from apps.transactions.training_data import TRAIN_DATA, CATEGORIES
 
+    # Fixed seeds so retraining gives the same model
+    random.seed(42)
+    spacy.util.fix_random_seed(42)
+
     # Start with blank English model
     nlp = spacy.blank('en')
 
