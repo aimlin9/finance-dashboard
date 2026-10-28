@@ -19,6 +19,7 @@ class BankStatement(models.Model):
     bank_name = models.CharField(max_length=100, blank=True)
     statement_month = models.DateField(null=True, blank=True)
     total_transactions = models.IntegerField(default=0)
+    duplicates_skipped = models.IntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     error_message = models.TextField(blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)

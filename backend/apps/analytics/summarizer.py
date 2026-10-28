@@ -1,6 +1,10 @@
+import logging
+
 from django.db.models import Sum
 from apps.transactions.models import Transaction
 from .models import MonthlySummary
+
+logger = logging.getLogger(__name__)
 
 
 def compute_monthly_summary(user, month_date):
@@ -13,13 +17,18 @@ def compute_monthly_summary(user, month_date):
         month_date: date object (first day of month, e.g. 2026-03-01)
 
     Returns:
-        MonthlySummary instance
+        MonthlySummary instance, or None when the month has no transactions
+        (its summary is removed so the month drops out of the month picker).
     """
     txns = Transaction.objects.filter(
         user=user,
         date__year=month_date.year,
         date__month=month_date.month,
     )
+
+    if not txns.exists():
+        MonthlySummary.objects.filter(user=user, month=month_date).delete()
+        return None
 
     # Calculate totals
     income = txns.filter(type='credit').aggregate(
@@ -62,7 +71,9 @@ def compute_monthly_summary(user, month_date):
         }
     )
 
-    action = "Created" if created else "Updated"
-    print(f"{action} summary for {month_date}: income={income}, expenses={expenses}, savings={net}")
+    logger.info(
+        '%s summary for %s: income=%s expenses=%s',
+        'Created' if created else 'Updated', month_date, income, expenses,
+    )
 
     return summary

@@ -7,7 +7,7 @@ class BankStatementSerializer(serializers.ModelSerializer):
         model = BankStatement
         fields = [
             'id', 'file_name', 'file_type', 'bank_name', 'statement_month',
-            'total_transactions', 'status', 'error_message', 'uploaded_at', 'processed_at',
+            'total_transactions', 'duplicates_skipped', 'status', 'error_message', 'uploaded_at', 'processed_at',
         ]
         read_only_fields = fields
 

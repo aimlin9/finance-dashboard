@@ -19,6 +19,7 @@ class Transaction(models.Model):
     merchant = models.CharField(max_length=200, blank=True)
     reference = models.CharField(max_length=200, blank=True)
     balance_after = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -27,3 +28,23 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.date} | {self.description[:40]} | {self.amount}"
+
+
+class CategoryRule(models.Model):
+    """
+    A categorization rule a user taught the app by correcting a transaction.
+    Any future description containing `pattern` (whole words) gets `category`.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='category_rules')
+    pattern = models.CharField(max_length=200)
+    category = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'transactions'
+        unique_together = ['user', 'pattern']
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.pattern} → {self.category}"

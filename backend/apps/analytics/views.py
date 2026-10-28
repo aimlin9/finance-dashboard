@@ -1,44 +1,110 @@
+from collections import defaultdict
 from datetime import date
-from django.db import models
+from decimal import Decimal, InvalidOperation
+
 from django.db.models import Sum
+from django.db.models.functions import ExtractWeekDay
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import MonthlySummary, Category, BudgetAlert
-from .summarizer import compute_monthly_summary
-from .ai_insights import generate_insight
 from apps.transactions.models import Transaction
-from .models import MonthlySummary, Category, BudgetAlert, SavingsGoal
+from .ai_insights import generate_insight, InsightUnavailable
+from .models import MonthlySummary, Category, SavingsGoal
+from .summarizer import compute_monthly_summary
+from .utils import parse_month, previous_month, payee_name
+
+
+def parse_money(value, field, allow_zero=True):
+    """Validate a user-entered amount; returns (Decimal, None) or (None, error Response)."""
+    try:
+        amount = Decimal(str(value)).quantize(Decimal('0.01'))
+    except (InvalidOperation, TypeError, ValueError):
+        return None, Response({field: 'Enter a valid amount.'}, status=400)
+    if amount < 0 or (amount == 0 and not allow_zero) or amount >= Decimal('10000000000'):
+        return None, Response({field: 'Enter an amount greater than zero.'}, status=400)
+    return amount, None
+
+
+def summary_totals(summary):
+    return {
+        'month': str(summary.month),
+        'total_income': str(summary.total_income),
+        'total_expenses': str(summary.total_expenses),
+        'net_savings': str(summary.net_savings),
+        'savings_rate': summary.savings_rate,
+    }
 
 
 class DashboardView(APIView):
     """GET /api/analytics/dashboard/?month=2026-03"""
 
     def get(self, request):
-        month_str = request.query_params.get('month')
-        if not month_str:
-            return Response({'detail': 'month query param required (YYYY-MM).'}, status=400)
-
-        year, m = month_str.split('-')
-        month_date = date(int(year), int(m), 1)
+        month_date = parse_month(request.query_params.get('month'))
 
         summary = MonthlySummary.objects.filter(
             user=request.user, month=month_date
-        ).first()
+        ).first() or compute_monthly_summary(request.user, month_date)
 
         if not summary:
-            summary = compute_monthly_summary(request.user, month_date)
+            return Response({'detail': 'No transactions for this month.'}, status=404)
+
+        txns = Transaction.objects.filter(
+            user=request.user, date__year=month_date.year, date__month=month_date.month,
+        )
+        debits = txns.filter(type='debit')
+
+        daily = [
+            {'date': str(row['date']), 'amount': float(row['total'])}
+            for row in debits.values('date').annotate(total=Sum('amount')).order_by('date')
+        ]
+
+        # Django: 1 = Sunday ... 7 = Saturday. Reorder to Monday-first.
+        by_weekday = {
+            row['wd']: float(row['total'])
+            for row in debits.annotate(wd=ExtractWeekDay('date')).values('wd').annotate(total=Sum('amount'))
+        }
+        weekday_spending = [
+            {'day': name, 'amount': by_weekday.get(wd, 0.0)}
+            for name, wd in zip(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], [2, 3, 4, 5, 6, 7, 1])
+        ]
+
+        payees = defaultdict(lambda: {'amount': 0.0, 'count': 0})
+        for description, amount in debits.values_list('description', 'amount'):
+            entry = payees[payee_name(description)]
+            entry['amount'] += float(amount)
+            entry['count'] += 1
+        top_payees = sorted(
+            ({'name': name, **values} for name, values in payees.items()),
+            key=lambda p: p['amount'], reverse=True,
+        )[:6]
+
+        largest = [
+            {
+                'id': str(t.id), 'date': str(t.date), 'description': t.description,
+                'amount': str(t.amount), 'category': t.category,
+            }
+            for t in debits.order_by('-amount')[:5]
+        ]
+
+        previous = MonthlySummary.objects.filter(
+            user=request.user, month=previous_month(month_date)
+        ).first()
 
         return Response({
-            'month': str(summary.month),
-            'total_income': str(summary.total_income),
-            'total_expenses': str(summary.total_expenses),
-            'net_savings': str(summary.net_savings),
-            'savings_rate': summary.savings_rate,
+            **summary_totals(summary),
             'top_category': summary.top_category,
-            'top_category_amount': str(summary.top_category_amount),
+            'top_category_amount': str(summary.top_category_amount or 0),
             'category_breakdown': summary.category_breakdown,
             'ai_insight': summary.ai_insight,
+            'insight_generated_at': summary.insight_generated_at,
+            'transaction_count': txns.count(),
+            'debit_count': debits.count(),
+            'daily_spending': daily,
+            'weekday_spending': weekday_spending,
+            'top_payees': top_payees,
+            'largest_expenses': largest,
+            'previous': summary_totals(previous) if previous else None,
         })
 
 
@@ -54,17 +120,23 @@ class MonthlyListView(APIView):
         return Response({'months': [str(m) for m in months]})
 
 
+class TrendView(APIView):
+    """GET /api/analytics/trend/ — Every month's totals, oldest first, in one request."""
+
+    def get(self, request):
+        summaries = MonthlySummary.objects.filter(user=request.user).order_by('month')
+        return Response([
+            {**summary_totals(s), 'category_breakdown': s.category_breakdown}
+            for s in summaries
+        ])
+
+
 class InsightsView(APIView):
     """GET /api/analytics/insights/?month=2026-03 — Generate AI insight."""
 
     def get(self, request):
-        month_str = request.query_params.get('month')
+        month_date = parse_month(request.query_params.get('month'))
         force = request.query_params.get('force', 'false') == 'true'
-        if not month_str:
-            return Response({'detail': 'month query param required.'}, status=400)
-
-        year, m = month_str.split('-')
-        month_date = date(int(year), int(m), 1)
 
         summary = MonthlySummary.objects.filter(
             user=request.user, month=month_date
@@ -73,92 +145,73 @@ class InsightsView(APIView):
         if not summary:
             return Response({'detail': 'No data for this month.'}, status=404)
 
-        if not summary.ai_insight or force or 'unavailable' in (summary.ai_insight or ''):
-            from django.utils import timezone
-            summary.ai_insight = generate_insight(summary)
+        if not summary.ai_insight or force:
+            previous = MonthlySummary.objects.filter(
+                user=request.user, month=previous_month(month_date)
+            ).first()
+            try:
+                insight = generate_insight(summary, previous)
+            except InsightUnavailable as e:
+                # Not saved: a failure must not be cached as if it were advice.
+                return Response({'detail': str(e)}, status=503)
+            summary.ai_insight = insight
             summary.insight_generated_at = timezone.now()
-            summary.save()
+            summary.save(update_fields=['ai_insight', 'insight_generated_at'])
 
         return Response({
             'month': str(summary.month),
             'insight': summary.ai_insight,
+            'generated_at': summary.insight_generated_at,
         })
+
+
 class CompareView(APIView):
     """GET /api/analytics/compare/?month1=2026-02&month2=2026-03"""
 
     def get(self, request):
-        month1_str = request.query_params.get('month1')
-        month2_str = request.query_params.get('month2')
+        month1 = parse_month(request.query_params.get('month1'), 'month1')
+        month2 = parse_month(request.query_params.get('month2'), 'month2')
 
-        if not month1_str or not month2_str:
-            return Response({'detail': 'month1 and month2 params required.'}, status=400)
-
-        y1, m1 = month1_str.split('-')
-        y2, m2 = month2_str.split('-')
-
-        sum1 = MonthlySummary.objects.filter(
-            user=request.user, month=date(int(y1), int(m1), 1)
-        ).first()
-        sum2 = MonthlySummary.objects.filter(
-            user=request.user, month=date(int(y2), int(m2), 1)
-        ).first()
+        sum1 = MonthlySummary.objects.filter(user=request.user, month=month1).first()
+        sum2 = MonthlySummary.objects.filter(user=request.user, month=month2).first()
 
         if not sum1 or not sum2:
             return Response({'detail': 'Data not available for one or both months.'}, status=404)
 
         return Response({
-            'month1': {
-                'month': str(sum1.month),
-                'total_income': str(sum1.total_income),
-                'total_expenses': str(sum1.total_expenses),
-                'net_savings': str(sum1.net_savings),
-                'category_breakdown': sum1.category_breakdown,
-            },
-            'month2': {
-                'month': str(sum2.month),
-                'total_income': str(sum2.total_income),
-                'total_expenses': str(sum2.total_expenses),
-                'net_savings': str(sum2.net_savings),
-                'category_breakdown': sum2.category_breakdown,
-            },
+            'month1': {**summary_totals(sum1), 'category_breakdown': sum1.category_breakdown},
+            'month2': {**summary_totals(sum2), 'category_breakdown': sum2.category_breakdown},
         })
+
+
+def user_categories(user):
+    """The user's customised categories plus system defaults they haven't customised."""
+    user_cats = list(Category.objects.filter(user=user))
+    custom_slugs = {c.slug for c in user_cats}
+    system_cats = Category.objects.filter(is_system=True, user=None).exclude(slug__in=custom_slugs)
+    return user_cats + list(system_cats)
 
 
 class BudgetView(APIView):
     """GET /api/analytics/budget/?month=2026-03 — Get budgets with current spending."""
 
     def get(self, request):
-        month_str = request.query_params.get('month')
-        if not month_str:
-            return Response({'detail': 'month query param required.'}, status=400)
+        month_date = parse_month(request.query_params.get('month'))
 
-        year, m = month_str.split('-')
-
-        # Get user's custom categories
-        user_cats = Category.objects.filter(user=request.user)
-        user_slugs = user_cats.values_list('slug', flat=True)
-
-        # Get system defaults, excluding ones the user has customized
-        system_cats = Category.objects.filter(
-            is_system=True
-        ).exclude(slug__in=user_slugs)
-
-        # Combine both
-        categories = list(user_cats) + list(system_cats)
-
-        spending = {}
-        txns = Transaction.objects.filter(
-            user=request.user,
-            type='debit',
-            date__year=int(year),
-            date__month=int(m),
-        ).values('category').annotate(total=Sum('amount'))
-
-        for row in txns:
-            spending[row['category']] = float(row['total'])
+        spending = {
+            row['category']: float(row['total'])
+            for row in Transaction.objects.filter(
+                user=request.user,
+                type='debit',
+                date__year=month_date.year,
+                date__month=month_date.month,
+            ).values('category').annotate(total=Sum('amount'))
+        }
 
         data = []
-        for cat in categories:
+        for cat in user_categories(request.user):
+            if cat.slug == 'income':
+                continue  # You don't budget money coming in
             spent = spending.get(cat.slug, 0)
             limit = float(cat.budget_limit) if cat.budget_limit else None
             progress = (spent / limit * 100) if limit else None
@@ -170,12 +223,13 @@ class BudgetView(APIView):
                 'icon': cat.icon,
                 'budget_limit': limit,
                 'amount_spent': spent,
-                'progress': round(progress, 1) if progress else None,
-                'status': 'exceeded' if progress and progress >= 100
-                    else 'warning' if progress and progress >= 80
+                'progress': round(progress, 1) if progress is not None else None,
+                'status': 'exceeded' if progress is not None and progress >= 100
+                    else 'warning' if progress is not None and progress >= 80
                     else 'ok',
             })
 
+        data.sort(key=lambda c: (c['budget_limit'] is None, -c['amount_spent']))
         return Response(data)
 
 
@@ -184,18 +238,19 @@ class BudgetSetView(APIView):
 
     def post(self, request):
         slug = request.data.get('category')
-        limit = request.data.get('budget_limit')
-
-        if not slug or limit is None:
+        if not slug or request.data.get('budget_limit') in (None, ''):
             return Response(
                 {'detail': 'category and budget_limit are required.'},
                 status=400,
             )
+        limit, error = parse_money(request.data.get('budget_limit'), 'budget_limit', allow_zero=False)
+        if error:
+            return error
 
         cat = Category.objects.filter(slug=slug, user=request.user).first()
 
         if not cat:
-            system_cat = Category.objects.filter(slug=slug, is_system=True).first()
+            system_cat = Category.objects.filter(slug=slug, is_system=True, user=None).first()
             if not system_cat:
                 return Response({'detail': 'Category not found.'}, status=404)
 
@@ -218,6 +273,7 @@ class BudgetSetView(APIView):
             'status': 'updated',
         })
 
+
 class BudgetRemoveView(APIView):
     """POST /api/analytics/budget/remove/ — Remove budget limit for a category."""
 
@@ -234,47 +290,71 @@ class BudgetRemoveView(APIView):
         cat.save()
 
         return Response({'category': slug, 'status': 'removed'})
-    
+
+
+def serialize_goal(goal):
+    target = float(goal.target_amount)
+    current = float(goal.current_amount)
+    progress = (current / target * 100) if target else 0
+
+    # What it takes to finish on time, spread over the whole months remaining.
+    monthly_needed = None
+    months_left = None
+    if goal.deadline and not goal.is_completed:
+        today = timezone.localdate()
+        months_left = max((goal.deadline.year - today.year) * 12 + goal.deadline.month - today.month, 0)
+        remaining = max(target - current, 0)
+        monthly_needed = round(remaining / months_left, 2) if months_left else round(remaining, 2)
+
+    return {
+        'id': str(goal.id),
+        'name': goal.name,
+        'target_amount': str(goal.target_amount),
+        'current_amount': str(goal.current_amount),
+        'deadline': str(goal.deadline) if goal.deadline else None,
+        'is_completed': goal.is_completed,
+        'progress': round(progress, 1),
+        'months_left': months_left,
+        'monthly_needed': monthly_needed,
+        'created_at': str(goal.created_at),
+    }
+
+
+def validate_deadline(value):
+    if not value:
+        return None, None
+    try:
+        return date.fromisoformat(str(value)), None
+    except ValueError:
+        return None, Response({'deadline': 'Use the format YYYY-MM-DD.'}, status=400)
+
+
 class SavingsGoalListView(APIView):
     """GET/POST /api/analytics/savings-goals/"""
 
     def get(self, request):
         goals = SavingsGoal.objects.filter(user=request.user)
-        data = []
-        for goal in goals:
-            progress = (float(goal.current_amount) / float(goal.target_amount) * 100) if goal.target_amount else 0
-            data.append({
-                'id': str(goal.id),
-                'name': goal.name,
-                'target_amount': str(goal.target_amount),
-                'current_amount': str(goal.current_amount),
-                'deadline': str(goal.deadline) if goal.deadline else None,
-                'is_completed': goal.is_completed,
-                'progress': round(progress, 1),
-                'created_at': str(goal.created_at),
-            })
-        return Response(data)
+        return Response([serialize_goal(g) for g in goals])
 
     def post(self, request):
-        name = request.data.get('name')
-        target = request.data.get('target_amount')
-        deadline = request.data.get('deadline')
-
-        if not name or not target:
+        name = (request.data.get('name') or '').strip()
+        if not name or request.data.get('target_amount') in (None, ''):
             return Response({'detail': 'name and target_amount are required.'}, status=400)
+
+        target, error = parse_money(request.data.get('target_amount'), 'target_amount', allow_zero=False)
+        if error:
+            return error
+        deadline, error = validate_deadline(request.data.get('deadline'))
+        if error:
+            return error
 
         goal = SavingsGoal.objects.create(
             user=request.user,
-            name=name,
+            name=name[:200],
             target_amount=target,
-            deadline=deadline if deadline else None,
+            deadline=deadline,
         )
-        return Response({
-            'id': str(goal.id),
-            'name': goal.name,
-            'target_amount': str(goal.target_amount),
-            'status': 'created',
-        }, status=201)
+        return Response({**serialize_goal(goal), 'status': 'created'}, status=201)
 
 
 class SavingsGoalDetailView(APIView):
@@ -287,19 +367,31 @@ class SavingsGoalDetailView(APIView):
             return Response({'detail': 'Goal not found.'}, status=404)
 
         if 'current_amount' in request.data:
-            goal.current_amount = request.data['current_amount']
-        if 'name' in request.data:
-            goal.name = request.data['name']
+            amount, error = parse_money(request.data['current_amount'], 'current_amount')
+            if error:
+                return error
+            goal.current_amount = amount
+        if 'add_amount' in request.data:
+            amount, error = parse_money(request.data['add_amount'], 'add_amount', allow_zero=False)
+            if error:
+                return error
+            goal.current_amount += amount
+        if 'name' in request.data and (request.data['name'] or '').strip():
+            goal.name = request.data['name'].strip()[:200]
         if 'target_amount' in request.data:
-            goal.target_amount = request.data['target_amount']
+            target, error = parse_money(request.data['target_amount'], 'target_amount', allow_zero=False)
+            if error:
+                return error
+            goal.target_amount = target
         if 'deadline' in request.data:
-            goal.deadline = request.data['deadline'] if request.data['deadline'] else None
+            goal.deadline, error = validate_deadline(request.data['deadline'])
+            if error:
+                return error
 
-        if float(goal.current_amount) >= float(goal.target_amount):
-            goal.is_completed = True
-
+        # Recomputed both ways: lowering the amount re-opens a finished goal.
+        goal.is_completed = goal.current_amount >= goal.target_amount
         goal.save()
-        return Response({'status': 'updated'})
+        return Response({**serialize_goal(goal), 'status': 'updated'})
 
     def delete(self, request, pk):
         try:
