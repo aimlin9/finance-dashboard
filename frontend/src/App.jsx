@@ -1,71 +1,111 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import useAuthStore from './store/authStore';
-import Auth from './pages/Auth';
-import Dashboard from './pages/Dashboard';
-import Upload from './pages/Upload';
-import Transactions from './pages/Transactions';
-import Layout from './components/Layout';
-import Budget from './pages/Budget';
-import Settings from './pages/Settings';
-import History from './pages/History';
-import Compare from './pages/Compare';
-import ResetPassword from './pages/ResetPassword';
-import Landing from './pages/Landing';
-import Privacy from './pages/Privacy';
-import Terms from './pages/Terms';
-import About from './pages/About';
-import SavingsGoals from './pages/SavingsGoals';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import useAuth from './store/auth';
+import useTheme from './store/theme';
+import AppShell from './components/layout/AppShell';
+import ErrorBoundary from './components/ErrorBoundary';
+import { LogoMark } from './components/Logo';
+import { PageSkeleton } from './components/ui';
 
+const Landing = lazy(() => import('./pages/Landing'));
+const Auth = lazy(() => import('./pages/Auth'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Legal = lazy(() => import('./pages/Legal'));
+const About = lazy(() => import('./pages/About'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Transactions = lazy(() => import('./pages/Transactions'));
+const Upload = lazy(() => import('./pages/Upload'));
+const Budget = lazy(() => import('./pages/Budget'));
+const SavingsGoals = lazy(() => import('./pages/SavingsGoals'));
+const Compare = lazy(() => import('./pages/Compare'));
+const Recurring = lazy(() => import('./pages/Recurring'));
+const Report = lazy(() => import('./pages/Report'));
+const Statements = lazy(() => import('./pages/Statements'));
+const Rules = lazy(() => import('./pages/Rules'));
+const Settings = lazy(() => import('./pages/Settings'));
 
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuthStore();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <p className="text-gray-400">Loading...</p>
-      </div>
-    );
-  }
-
-  return isAuthenticated ? <Layout>{children}</Layout> : <Navigate to="/login" />;
+function Splash() {
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-bg">
+      <LogoMark size={44} className="animate-pulse" />
+    </div>
+  );
 }
 
+function Protected({ children }) {
+  const status = useAuth((s) => s.status);
+  const location = useLocation();
+  if (status === 'checking') return <Splash />;
+  if (status === 'out') return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  return (
+    <AppShell>
+      <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+    </AppShell>
+  );
+}
+
+function PublicOnly({ children }) {
+  const status = useAuth((s) => s.status);
+  if (status === 'checking') return <Splash />;
+  if (status === 'in') return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+const app = [
+  ['/dashboard', Dashboard],
+  ['/transactions', Transactions],
+  ['/upload', Upload],
+  ['/budget', Budget],
+  ['/savings', SavingsGoals],
+  ['/compare', Compare],
+  ['/recurring', Recurring],
+  ['/report', Report],
+  ['/statements', Statements],
+  ['/rules', Rules],
+  ['/settings', Settings],
+];
+
 export default function App() {
-  const { checkAuth } = useAuthStore();
+  const checkAuth = useAuth((s) => s.checkAuth);
+  const theme = useTheme((s) => s.resolved);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
   return (
-    <BrowserRouter>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          style: { background: '#1f2937', color: '#f9fafb', border: '1px solid #374151' },
-        }}
-      />
-      <Routes>
-        <Route path="/login" element={<Auth />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
-        <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
-        <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-        <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} /> 
-        <Route path="/about" element={<About />} />
-        <Route path="/savings" element={<ProtectedRoute><SavingsGoals /></ProtectedRoute>} />
-        <Route path="/" element={<Landing />} />
-        <Route path="*" element={<Navigate to="/" />} />
-       
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Toaster
+          theme={theme}
+          position="top-center"
+          offset={{ top: 'max(16px, env(safe-area-inset-top))' }}
+          toastOptions={{
+            classNames: {
+              toast: '!rounded-2xl !border !border-line !bg-surface !text-ink !shadow-md !font-sans',
+              description: '!text-ink-3',
+            },
+          }}
+        />
+        <Suspense fallback={<Splash />}>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<PublicOnly><Auth mode="login" /></PublicOnly>} />
+            <Route path="/register" element={<PublicOnly><Auth mode="register" /></PublicOnly>} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/privacy" element={<Legal doc="privacy" />} />
+            <Route path="/terms" element={<Legal doc="terms" />} />
+            <Route path="/about" element={<About />} />
+            {app.map(([path, Page]) => (
+              <Route key={path} path={path} element={<Protected><Page /></Protected>} />
+            ))}
+            <Route path="/history" element={<Navigate to="/statements" replace />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

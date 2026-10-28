@@ -1,11 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en-GH">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>FinTrack Ghana — know where every cedi goes</title>
+    <meta name="description" content="Upload a GCB, Ecobank or MTN MoMo statement and see exactly where your money went: categories, budgets, recurring bills and plain-English advice." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FinTrack Ghana — Personal Finance Dashboard</title>
-    <meta name="description" content="Upload your Ghanaian bank statement and get automatic spending insights powered by NLP and AI." />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#f5f3ee" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="FinTrack" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta property="og:title" content="FinTrack Ghana" />
+    <meta property="og:description" content="Know where every cedi goes. Built for Ghanaian bank and MoMo statements." />
+    <meta property="og:type" content="website" />
+    <script>
+      // Apply the saved theme before first paint so there's no light flash.
+      (function () {
+        try {
+          var p = localStorage.getItem('theme') || 'system';
+          var dark = p === 'dark' || (p === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          if (dark) document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0e0c');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

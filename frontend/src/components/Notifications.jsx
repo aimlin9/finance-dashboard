@@ -1,111 +1,75 @@
-import { useState, useEffect, useRef } from 'react';
-import { Bell, AlertTriangle, XCircle } from 'lucide-react';
-import api from '../api/client';
+import { Link } from 'react-router-dom';
+import { AlertTriangle, CalendarClock, OctagonAlert, BellOff } from 'lucide-react';
+import { Sheet } from './ui';
+import { category } from '../lib/categories';
+import { date, percent } from '../lib/format';
+import useAlerts from '../hooks/useAlerts';
+import useMoney from '../hooks/useMoney';
 
-export default function Notifications() {
-  var [alerts, setAlerts] = useState([]);
-  var [open, setOpen] = useState(false);
-  var ref = useRef(null);
-
-  useEffect(function() {
-    var fetchAlerts = async function() {
-      try {
-        var now = new Date();
-        var month = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-        var res = await api.get('/analytics/budget/?month=' + month);
-        var budgetAlerts = (res.data || []).filter(function(cat) {
-          return cat.budget_limit && cat.progress >= 80;
-        }).map(function(cat) {
-          return {
-            name: cat.name,
-            slug: cat.slug,
-            icon: cat.icon,
-            spent: cat.amount_spent,
-            limit: cat.budget_limit,
-            progress: cat.progress,
-            status: cat.status,
-          };
-        });
-        setAlerts(budgetAlerts);
-      } catch (err) {
-        // silently fail
-      }
-    };
-    fetchAlerts();
-  }, []);
-
-  useEffect(function() {
-    var handleClickOutside = function(e) {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return function() { document.removeEventListener('mousedown', handleClickOutside); };
-  }, []);
+export default function Notifications({ open, onOpenChange }) {
+  const { budgetAlerts, upcoming } = useAlerts();
+  const format = useMoney();
+  const close = () => onOpenChange(false);
+  const empty = !budgetAlerts.length && !upcoming.length;
 
   return (
-    <div className="relative" ref={ref}>
-      <div
-        onClick={function() { setOpen(!open); }}
-        className="relative p-2 rounded-lg text-gray-400 hover:bg-gray-800 cursor-pointer transition"
-      >
-        <Bell size={20} />
-        {alerts.length > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center font-medium">
-            {alerts.length}
-          </span>
-        )}
-      </div>
-
-      {open && (
-        <div className="absolute right-0 top-12 w-80 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-[100] overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-700">
-            <p className="text-sm font-medium text-white">Budget Alerts</p>
-          </div>
-
-          {alerts.length === 0 ? (
-            <div className="px-4 py-6 text-center text-gray-500 text-sm">
-              No alerts. Your spending is on track!
-            </div>
-          ) : (
-            <div className="max-h-[300px] overflow-auto">
-              {alerts.map(function(alert) {
-                return (
-                  <div key={alert.slug} className="px-4 py-3 border-b border-gray-700/50 hover:bg-gray-700/30 transition">
-                    <div className="flex items-start gap-3">
-                      {alert.status === 'exceeded' ? (
-                        <XCircle size={18} className="text-red-400 mt-0.5" />
-                      ) : (
-                        <AlertTriangle size={18} className="text-amber-400 mt-0.5" />
-                      )}
-                      <div className="flex-1">
-                        <p className="text-sm text-white">
-                          {alert.icon} {alert.name}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {alert.status === 'exceeded'
-                            ? 'Over budget! GHS ' + alert.spent.toFixed(2) + ' of GHS ' + alert.limit.toFixed(2)
-                            : 'Almost there — ' + alert.progress.toFixed(0) + '% used'}
-                        </p>
-                        <div className="w-full h-1.5 bg-gray-700 rounded-full mt-2 overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: Math.min(alert.progress, 100) + '%',
-                              backgroundColor: alert.status === 'exceeded' ? '#EF4444' : '#F59E0B',
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+    <Sheet open={open} onOpenChange={onOpenChange} title="Alerts" description="Budgets near their limit and bills coming up.">
+      {empty ? (
+        <div className="flex flex-col items-center py-12 text-center">
+          <BellOff size={28} className="text-ink-3" />
+          <p className="mt-3 text-sm font-medium text-ink">All quiet</p>
+          <p className="mt-1 max-w-xs text-sm text-ink-3">Set budgets to get warned at 80% of a limit. Recurring bills show here 10 days ahead.</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {budgetAlerts.length > 0 && (
+            <section>
+              <p className="eyebrow mb-2">Budgets</p>
+              <ul className="space-y-2">
+                {budgetAlerts.map((b) => {
+                  const over = b.status === 'exceeded';
+                  const Icon = over ? OctagonAlert : AlertTriangle;
+                  return (
+                    <li key={b.slug}>
+                      <Link to="/budget" onClick={close} className="flex items-start gap-3 rounded-2xl border border-line p-3.5 hover:bg-surface-2">
+                        <span className={`mt-0.5 ${over ? 'text-neg' : 'text-warn'}`}><Icon size={18} /></span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium text-ink">
+                            {category(b.slug).name} {over ? 'is over budget' : 'is close to its limit'}
+                          </span>
+                          <span className="num mt-0.5 block text-[13px] text-ink-3">
+                            {format(b.amount_spent)} of {format(b.budget_limit)} · {percent(b.progress)}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+          {upcoming.length > 0 && (
+            <section>
+              <p className="eyebrow mb-2">Coming up</p>
+              <ul className="space-y-2">
+                {upcoming.map((r) => (
+                  <li key={r.description}>
+                    <Link to="/recurring" onClick={close} className="flex items-start gap-3 rounded-2xl border border-line p-3.5 hover:bg-surface-2">
+                      <span className="mt-0.5 text-ink-2"><CalendarClock size={18} /></span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-ink">{r.description}</span>
+                        <span className="num mt-0.5 block text-[13px] text-ink-3">
+                          About {format(r.average_amount)} expected {date(r.next_expected, 'EEE d MMM')}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </div>
       )}
-    </div>
+    </Sheet>
   );
 }

@@ -1,106 +1,58 @@
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Mail, Globe } from 'lucide-react';
+import { ExternalLink, Globe } from 'lucide-react';
+import PublicShell from '../components/layout/PublicShell';
+import { Button } from '../components/ui';
+
+const STACK = ['Python', 'Django REST', 'React 19', 'Tailwind CSS 4', 'PostgreSQL', 'spaCy', 'Google Gemini', 'Recharts', 'pdfplumber', 'Motion'];
 
 export default function About() {
-  var navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-gray-950 px-6 sm:px-12 py-12">
-      <div className="max-w-3xl mx-auto">
-        <div
-          onClick={function() { navigate(-1); }}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition cursor-pointer mb-8"
-        >
-          <ArrowLeft size={18} />
-          <span className="text-sm">Back</span>
-        </div>
-
-        <h1 className="text-3xl font-bold text-white mb-8">About FinTrack Ghana</h1>
-
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">The Problem</h2>
-          <p className="text-gray-400 leading-relaxed mb-4">
-            Most Ghanaians have no clear picture of where their money goes. Bank apps show raw transactions — numbers, dates, and cryptic reference codes — but offer zero analysis. No categories. No charts. No insights.
+    <PublicShell>
+      <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
+        <p className="eyebrow">About</p>
+        <h1 className="display mt-3 text-[40px] leading-[1.05] text-ink sm:text-[56px]">Bank apps show transactions. They don’t explain them.</h1>
+        <div className="mt-10 space-y-5 text-[17px] leading-relaxed text-ink-2">
+          <p>
+            Most people in Ghana have no clear picture of where their money goes. A statement is a list of dates, amounts
+            and reference codes like <span className="font-mono text-[15px] text-ink">300304******0000 Ref 0736</span>. No categories, no totals, no sense of the month.
           </p>
-          <p className="text-gray-400 leading-relaxed">
-            There is no tool that reads a GCB or MTN MoMo statement and tells you in plain language what your money is doing and what to change. FinTrack Ghana was built to fill that gap.
+          <p>
+            FinTrack Ghana reads GCB, Ecobank and MTN MoMo statements, and CSV exports from any other bank, and turns them into
+            something you can act on: where the money went, what repeats every month, what changed, and what to adjust.
           </p>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">The Solution</h2>
-          <p className="text-gray-400 leading-relaxed mb-4">
-            FinTrack Ghana is a full-stack personal finance dashboard that automatically parses Ghanaian bank statements, categorizes every transaction using NLP, and delivers AI-powered spending insights. Upload a statement and within seconds see exactly where your money went.
-          </p>
-          <div className="grid sm:grid-cols-2 gap-4 mt-6">
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <p className="text-indigo-400 font-medium text-sm mb-1">5 Banks Supported</p>
-              <p className="text-gray-500 text-sm">GCB, Ecobank, MTN MoMo, Absa, Fidelity</p>
+        <dl className="mt-14 grid gap-px overflow-hidden rounded-[22px] border border-line bg-line sm:grid-cols-2">
+          {[
+            ['3 native formats', 'GCB, Ecobank and MTN MoMo, in PDF and CSV, plus a generic importer for other banks’ CSVs.'],
+            ['14 categories', 'Including Church & Giving, Fees & Charges (E-levy, SMS alerts) and Cash Withdrawal.'],
+            ['Layered categorizing', 'Your own rules, then ~200 known merchants and keywords, then a spaCy model that only answers when it recognises the words.'],
+            ['Optional AI advice', 'Google Gemini 2.5 Flash, sent category totals only, and only when you ask.'],
+          ].map(([k, v]) => (
+            <div key={k} className="bg-surface p-6">
+              <dt className="display text-[22px] text-ink">{k}</dt>
+              <dd className="mt-2 text-sm leading-relaxed text-ink-3">{v}</dd>
             </div>
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <p className="text-emerald-400 font-medium text-sm mb-1">9 Categories</p>
-              <p className="text-gray-500 text-sm">Food, Transport, Utilities, Health, and more</p>
-            </div>
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <p className="text-amber-400 font-medium text-sm mb-1">90% Accuracy</p>
-              <p className="text-gray-500 text-sm">Keyword rules + spaCy NLP classifier</p>
-            </div>
-            <div className="bg-gray-800/50 rounded-xl p-4">
-              <p className="text-cyan-400 font-medium text-sm mb-1">AI Insights</p>
-              <p className="text-gray-500 text-sm">Google Gemini 2.5 Flash for personalized advice</p>
-            </div>
-          </div>
-        </div>
+          ))}
+        </dl>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Tech Stack</h2>
-          <div className="flex flex-wrap gap-3">
-            {['Python', 'Django', 'React', 'Tailwind CSS', 'PostgreSQL', 'spaCy', 'Google Gemini', 'JWT Auth', 'Recharts', 'pdfplumber'].map(function(tech) {
-              return (
-                <span key={tech} className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm">
-                  {tech}
-                </span>
-              );
-            })}
-          </div>
-        </div>
+        <h2 className="eyebrow mt-16">Built with</h2>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {STACK.map((t) => <li key={t} className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm text-ink-2">{t}</li>)}
+        </ul>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Built By</h2>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
-              G
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-white">Gyimah Ramsey Opoku</p>
-              <p className="text-gray-500">Computer Science Student, Accra, Ghana</p>
-            </div>
+        <section className="card mt-16 flex flex-col gap-6 p-7 sm:flex-row sm:items-center">
+          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gold-soft font-mono text-lg text-gold">GR</span>
+          <div className="flex-1">
+            <p className="display text-xl text-ink">Gyimah Ramsey Opoku</p>
+            <p className="text-sm text-ink-3">Computer Science student · Accra, Ghana</p>
+            <p className="mt-2 text-sm leading-relaxed text-ink-2">Building software that solves real problems for African markets.</p>
           </div>
-          <p className="text-gray-400 text-sm leading-relaxed mb-6">
-            CS student passionate about building software that solves real problems for African markets. Currently seeking remote internship opportunities in full-stack development.
-          </p>
-          <div className="flex gap-4">
-            <a
-              href="https://github.com/aimlin9"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition text-sm"
-            >
-              <ExternalLink size={16} />
-              GitHub
-            </a>
-            <a
-              href="https://dev.to/aimlin9"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition text-sm"
-            >
-              <Globe size={16} />
-              Dev.to
-            </a>
+          <div className="flex gap-2">
+            <Button href="https://github.com/aimlin9" target="_blank" rel="noreferrer" variant="secondary" size="sm" icon={ExternalLink}>GitHub</Button>
+            <Button href="https://dev.to/aimlin9" target="_blank" rel="noreferrer" variant="secondary" size="sm" icon={Globe}>Dev.to</Button>
           </div>
-        </div>
-      </div>
-    </div>
+        </section>
+      </article>
+    </PublicShell>
   );
 }

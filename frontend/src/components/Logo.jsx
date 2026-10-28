@@ -1,16 +1,27 @@
-export default function Logo({ size }) {
-  var s = size || 32;
+import { Link } from 'react-router-dom';
+import cn from '../lib/cn';
+
+/** The cedi sign, drawn rather than typed so it renders identically everywhere. */
+export function LogoMark({ size = 32, className }) {
   return (
-    <svg width={s} height={s} viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0" y="0" width="140" height="140" rx="28" fill="#6366F1"/>
-      <rect x="28" y="85" width="18" height="30" rx="4" fill="white" opacity="0.6"/>
-      <rect x="54" y="55" width="18" height="60" rx="4" fill="white" opacity="0.8"/>
-      <rect x="80" y="35" width="18" height="80" rx="4" fill="white"/>
-      <polyline points="30,80 60,52 86,30" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="30" cy="80" r="4" fill="white"/>
-      <circle cx="60" cy="52" r="4" fill="white"/>
-      <circle cx="86" cy="30" r="4" fill="white"/>
-      <circle cx="108" cy="25" r="5" fill="#10B981"/>
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden className={className}>
+      <rect width="64" height="64" rx="17" fill="var(--accent)" />
+      <path d="M43.2 23.4A13.4 13.4 0 1 0 43.2 40.6" fill="none" stroke="var(--accent-ink)" strokeWidth="5.4" strokeLinecap="round" />
+      <path d="M31.5 13.5v37" stroke="var(--accent-ink)" strokeWidth="4.2" strokeLinecap="round" />
     </svg>
+  );
+}
+
+export default function Logo({ to = '/', compact = false, className }) {
+  return (
+    <Link to={to} className={cn('inline-flex items-center gap-2.5', className)} aria-label="FinTrack Ghana home">
+      <LogoMark size={compact ? 30 : 32} />
+      {!compact && (
+        <span className="flex flex-col leading-none">
+          <span className="display text-[19px] font-medium tracking-[-0.03em] text-ink">FinTrack</span>
+          <span className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.22em] text-ink-3">Ghana</span>
+        </span>
+      )}
+    </Link>
   );
 }

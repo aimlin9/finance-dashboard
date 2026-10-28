@@ -1,118 +1,69 @@
 import { useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import api from '../api/client';
-import toast from 'react-hot-toast';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { CheckCircle2, LinkIcon } from 'lucide-react';
+import { toast } from 'sonner';
+import api, { errorMessage } from '../lib/api';
+import Logo from '../components/Logo';
+import { Button, Input } from '../components/ui';
 
 export default function ResetPassword() {
-  var [searchParams] = useSearchParams();
-  var navigate = useNavigate();
-  var uid = searchParams.get('uid');
-  var token = searchParams.get('token');
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const uid = params.get('uid');
+  const token = params.get('token');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
 
-  var [password, setPassword] = useState('');
-  var [confirmPassword, setConfirmPassword] = useState('');
-  var [loading, setLoading] = useState(false);
-  var [done, setDone] = useState(false);
-
-  var handleSubmit = async function(e) {
+  const submit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
+    if (password !== confirm) { setError("Passwords don't match."); return; }
     setLoading(true);
+    setError('');
     try {
-      await api.post('/auth/password-reset/confirm/', {
-        uid: uid,
-        token: token,
-        new_password: password,
-      });
+      await api.post('/auth/password-reset/confirm/', { uid, token, new_password: password });
       setDone(true);
-      toast.success('Password updated!');
     } catch (err) {
-      toast.error('Reset link is invalid or expired');
+      const msg = err.response?.data?.new_password?.[0];
+      if (msg) setError(msg);
+      else toast.error(errorMessage(err, 'This reset link is invalid or has expired.'));
     } finally {
       setLoading(false);
     }
   };
 
-  if (!uid || !token) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">Invalid Reset Link</h1>
-          <p className="text-gray-400 mb-6">This password reset link is invalid or has expired.</p>
-          <button
-            onClick={function() { navigate('/login'); }}
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition"
-          >
-            Back to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (done) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">Password Updated!</h1>
-          <p className="text-gray-400 mb-6">You can now sign in with your new password.</p>
-          <button
-            onClick={function() { navigate('/login'); }}
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition"
-          >
-            Sign In
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Reset Password</h1>
-          <p className="text-gray-400">Enter your new password below</p>
-        </div>
-
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">New Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={function(e) { setPassword(e.target.value); }}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
-                placeholder="Enter new password"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Confirm Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={function(e) { setConfirmPassword(e.target.value); }}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
-                placeholder="Confirm new password"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition disabled:opacity-50"
-            >
-              {loading ? 'Updating...' : 'Update Password'}
-            </button>
-          </form>
-        </div>
+    <div className="flex min-h-dvh flex-col px-5 pt-safe sm:px-10">
+      <div className="flex h-16 items-center"><Logo /></div>
+      <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center pb-16">
+        {!uid || !token ? (
+          <div className="text-center">
+            <LinkIcon size={30} className="mx-auto text-ink-3" />
+            <h1 className="display mt-4 text-3xl text-ink">This link is incomplete</h1>
+            <p className="mt-2 text-sm text-ink-3">Open the link from your email again, or request a new one.</p>
+            <Button className="mt-6" to="/login">Back to sign in</Button>
+          </div>
+        ) : done ? (
+          <div className="text-center">
+            <CheckCircle2 size={34} className="mx-auto text-accent" />
+            <h1 className="display mt-4 text-3xl text-ink">Password updated</h1>
+            <p className="mt-2 text-sm text-ink-3">You can sign in with your new password now.</p>
+            <Button className="mt-6" onClick={() => navigate('/login')}>Sign in</Button>
+          </div>
+        ) : (
+          <>
+            <p className="eyebrow">Account recovery</p>
+            <h1 className="display mt-3 text-[36px] leading-tight text-ink">Choose a new password</h1>
+            <form onSubmit={submit} className="mt-8 space-y-4">
+              <Input label="New password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} hint="At least 8 characters, not all numbers." required minLength={8} autoFocus />
+              <Input label="Confirm password" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} error={error} required />
+              <Button type="submit" size="lg" className="w-full" loading={loading}>Update password</Button>
+            </form>
+            <p className="mt-6 text-center text-sm text-ink-3"><Link to="/login" className="text-accent hover:underline">Back to sign in</Link></p>
+          </>
+        )}
       </div>
     </div>
   );
