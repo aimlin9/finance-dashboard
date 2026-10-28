@@ -18,6 +18,12 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'password_confirm': 'Passwords do not match.'})
         return attrs
 
+    def validate_email(self, value):
+        value = value.strip().lower()
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError('An account with this email already exists.')
+        return value
+
     def create(self, validated_data):
         validated_data.pop('password_confirm')
         return User.objects.create_user(**validated_data)
@@ -27,4 +33,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'full_name', 'currency', 'timezone', 'is_verified', 'created_at']
+        extra_kwargs = {'currency': {'required': False}}
         read_only_fields = ['id', 'email', 'is_verified', 'created_at']
+
+    def validate_currency(self, value):
+        if value not in ('GHS', 'USD', 'GBP', 'EUR', 'NGN', 'KES', 'ZAR'):
+            raise serializers.ValidationError('Unsupported currency.')
+        return value
