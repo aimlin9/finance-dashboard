@@ -53,3 +53,10 @@ class AuthFlowTest(APITestCase):
         self.login()
         self.assertEqual(self.client.patch('/api/auth/me/', {'currency': 'XYZ'}).status_code, 400)
         self.assertEqual(self.client.patch('/api/auth/me/', {'currency': 'USD'}).status_code, 200)
+
+
+class HealthTest(APITestCase):
+    def test_health_is_public(self):
+        res = self.client.get('/api/health/')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {'status': 'ok', 'database': 'ok'})

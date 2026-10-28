@@ -99,3 +99,12 @@ export async function downloadFile(url, filename) {
 }
 
 export default api;
+
+// The free API host sleeps when idle and takes up to a minute to wake.
+// Pages a visitor sees before signing in call this so the server is
+// already starting while they read or type.
+let warming = null;
+export function warmUp() {
+  if (!warming) warming = fetch(`${baseURL}/health/`).catch(() => {});
+  return warming;
+}

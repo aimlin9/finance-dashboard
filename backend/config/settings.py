@@ -74,7 +74,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASE_URL_VALUE = os.environ.get('DATABASE_URL', '')
 if DATABASE_URL_VALUE:
     DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL_VALUE, conn_max_age=600)
+        # Health checks reconnect cleanly after a serverless database (Neon) suspends.
+        'default': dj_database_url.config(default=DATABASE_URL_VALUE, conn_max_age=600, conn_health_checks=True)
     }
 else:
     DATABASES = {

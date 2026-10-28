@@ -1,0 +1,38 @@
+# Render blueprint for the FinTrack Ghana API (free tier).
+# Render dashboard → New → Blueprint → pick this repo. You'll be asked for
+# DATABASE_URL (a Neon Postgres connection string) and GEMINI_API_KEY.
+services:
+  - type: web
+    name: fintrack-api
+    runtime: python
+    plan: free
+    region: frankfurt # closest Render region to Ghana
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    # Free instances have no pre-deploy step, so migrations run at start.
+    # One worker with threads keeps spaCy (~155 MB per process) inside 512 MB.
+    startCommand: >-
+      python manage.py migrate --noinput &&
+      python manage.py seed_categories &&
+      gunicorn config.wsgi --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    healthCheckPath: /api/health/
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://*.onrender.com
+      - key: FRONTEND_URL
+        value: https://finance-dashboard-phi-mauve.vercel.app
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://finance-dashboard-phi-mauve.vercel.app
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

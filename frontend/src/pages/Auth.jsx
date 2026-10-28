@@ -3,7 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, MailCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import api, { errorMessage } from '../lib/api';
+import api, { errorMessage, warmUp } from '../lib/api';
+import useSlow from '../hooks/useSlow';
+import WakingNotice from '../components/WakingNotice';
 import useAuth from '../store/auth';
 import Logo from '../components/Logo';
 import { Button, CategoryPill, Input, Sheet } from '../components/ui';
@@ -94,6 +96,11 @@ export default function Auth({ mode }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
+  const slow = useSlow(loading);
+
+  useEffect(() => {
+    warmUp();
+  }, []);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
@@ -182,6 +189,7 @@ export default function Auth({ mode }) {
               <Button type="submit" size="lg" className="w-full" loading={loading} iconRight={ArrowRight}>
                 {isLogin ? 'Sign in' : 'Create account'}
               </Button>
+              <WakingNotice show={slow} />
             </form>
 
             <p className="mt-6 text-center text-sm text-ink-3">

@@ -7,6 +7,8 @@ import AppShell from './components/layout/AppShell';
 import ErrorBoundary from './components/ErrorBoundary';
 import { LogoMark } from './components/Logo';
 import { PageSkeleton } from './components/ui';
+import WakingNotice from './components/WakingNotice';
+import useSlow from './hooks/useSlow';
 
 const Landing = lazy(() => import('./pages/Landing'));
 const Auth = lazy(() => import('./pages/Auth'));
@@ -27,9 +29,11 @@ const Rules = lazy(() => import('./pages/Rules'));
 const Settings = lazy(() => import('./pages/Settings'));
 
 function Splash() {
+  const slow = useSlow(true, 3500);
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-bg">
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-bg px-8">
       <LogoMark size={44} className="animate-pulse" />
+      <WakingNotice show={slow} className="max-w-xs" />
     </div>
   );
 }

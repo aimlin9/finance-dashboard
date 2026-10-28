@@ -5,7 +5,8 @@
 Most bank apps show a list of dates, amounts and reference codes like `300304******0000 Ref 0736`. FinTrack reads a GCB, Ecobank or MTN MoMo statement (or a CSV from any other bank) and shows where the money went, what repeats every month, what changed, and what to adjust.
 
 - **Live app:** [finance-dashboard-phi-mauve.vercel.app](https://finance-dashboard-phi-mauve.vercel.app)
-- **API:** [finance-dashboard-production-8a66.up.railway.app/api/](https://finance-dashboard-production-8a66.up.railway.app/api/)
+
+The API runs on a free tier that sleeps when idle, so the first visit after a quiet spell can take up to a minute; the app says so while it wakes.
 
 ## Features
 
@@ -50,7 +51,7 @@ Fourteen categories built for Ghana, including Church & Giving, Fees & Charges a
 | Database | SQLite locally, PostgreSQL in production |
 | Frontend | React 19, Vite, Tailwind CSS 4, Zustand |
 | UI | Recharts, Motion, vaul (sheets), cmdk (command palette), Fraunces / Instrument Sans / Geist Mono |
-| Hosting | Railway (API), Vercel (web) |
+| Hosting | Render (API), Neon (Postgres), Vercel (web) — all free tiers |
 
 ## Local setup
 
@@ -101,6 +102,14 @@ All settings come from environment variables; see [`backend/.env.example`](backe
 | `GEMINI_API_KEY` | Enables advisor notes |
 | `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, … | SMTP for password resets (printed to the console when unset) |
 | `VITE_API_URL` (frontend) | API base URL in production builds |
+
+## Deploying (free tiers)
+
+1. **Database:** create a free project on [Neon](https://neon.tech) and copy its connection string.
+2. **API:** on [Render](https://render.com), New → Blueprint → this repo. [`render.yaml`](render.yaml) configures everything; paste the Neon string as `DATABASE_URL` and optionally a `GEMINI_API_KEY`. Migrations and category seeding run on each start, and `/api/health/` is the health check.
+3. **Web:** on Vercel, set `VITE_API_URL` to `https://<your-render-service>.onrender.com/api` and redeploy.
+
+The API runs one gunicorn worker with four threads: with spaCy loaded a worker peaks around 190 MB, inside the free 512 MB.
 
 ## API
 

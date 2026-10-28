@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowRight, CalendarRange, FileDown, KeyRound, Lock, Repeat, ShieldCheck, Smartphone, Sparkles, Trash2, Wallet, Wand2,
@@ -5,6 +6,7 @@ import {
 import PublicShell from '../components/layout/PublicShell';
 import { Button, CategoryIcon } from '../components/ui';
 import { money } from '../lib/format';
+import { warmUp } from '../lib/api';
 
 const fade = {
   hidden: { opacity: 0, y: 18 },
@@ -109,6 +111,10 @@ const FAQ = [
 ];
 
 export default function Landing() {
+  useEffect(() => {
+    warmUp();
+  }, []);
+
   return (
     <PublicShell>
       {/* Hero */}
